@@ -5,6 +5,7 @@
 #include "helpers/quad.h"
 #include "helpers/shader.h"
 #include "helpers/input.h"
+#include "helpers/plane.h"
 
 int main()
 {
@@ -47,7 +48,8 @@ int main()
 
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    Triangle triangle;
+    Triangle triangle(5.0f, 5.0f);
+    Plane plane(20.0f, 15.0f);
 
     Camera camera(glm::vec3(15.0f, 15.0f, 15.0f));
 
@@ -163,8 +165,8 @@ int main()
         //     0.1f,
         //     100.0f);
         glm::mat4 proj = glm::ortho(
-            -2.0f, 2.0f,
-            -2.0f, 2.0f,
+            -20.0f, 20.0f,
+            -20.0f, 20.0f,
             0.1f,
             100.0f);
 
@@ -187,6 +189,7 @@ int main()
         glUniform3f(glGetUniformLocation(shader.id(), "T"), 0.0, 0.0, currentFrame / 1.0);
 
         triangle.draw();
+        plane.draw();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST);

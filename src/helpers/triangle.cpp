@@ -2,15 +2,15 @@
 #include <vector>
 #include <glad/glad.h>
 
-Triangle::Triangle() {
+Triangle::Triangle(float width, float height) {
     std::vector<float> positions = {
-        -1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
-        -1.0f, -1.0f, 0.0f,
+        width, 0.0f, 0.0f,
+        0.0f,  height, 0.0f,
+        width, height, 0.0f,
 
-         1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f, 0.0f,
+        0.0f,  height, 0.0f,
+        width, 0.0f, 0.0f,
+        0.0f,  0.0f, 0.0f,
     };
 
     std::vector<float> colors = {

@@ -13,6 +13,8 @@ add_executable(Opengl_game
     src/helpers/quad.cpp
     src/helpers/shader.cpp
     src/helpers/input.cpp
+    src/helpers/player.cpp
+    src/helpers/plane.cpp
 
     dependencies/imgui/imgui.cpp
     dependencies/imgui/imgui_draw.cpp

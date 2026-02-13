@@ -1,9 +1,10 @@
 #pragma once
 #include "config.h"
 
-class Triangle {
+class Triangle
+{
 public:
-    Triangle();
+    Triangle(float width, float height);
     void draw();
     ~Triangle();
 
