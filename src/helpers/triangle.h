@@ -4,7 +4,7 @@
 class Triangle
 {
 public:
-    Triangle(float width, float height);
+    Triangle();
     void draw();
     ~Triangle();
 

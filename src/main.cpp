@@ -6,11 +6,15 @@
 #include "helpers/shader.h"
 #include "helpers/input.h"
 #include "helpers/plane.h"
+#include "helpers/player.h"
 
 int main()
 {
 
     std::string shaderDir = std::string(ROOT_FOLDER) + "/src/shaders/";
+
+    // for random player color i must set a seed? idk really.
+    srand(static_cast<unsigned int>(time(nullptr)));
 
     // checking for glfw
     if (!glfwInit())
@@ -48,8 +52,12 @@ int main()
 
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    Triangle triangle(5.0f, 5.0f);
+    Triangle triangle;
     Plane plane(20.0f, 15.0f);
+    std::vector<Player> players;
+
+    players.emplace_back(glm::vec3(0.0f, 0.0f, 5.0f), GLFW_KEY_W, GLFW_KEY_E, 5.0f);
+    players.emplace_back(glm::vec3(2.0f, 0.0f, 5.0f), GLFW_KEY_S, GLFW_KEY_D, 5.0f);
 
     Camera camera(glm::vec3(15.0f, 15.0f, 15.0f));
 
@@ -140,9 +148,6 @@ int main()
 
         glfwPollEvents();
 
-        // shader.hotReloadIfChanged();
-        // screenShader.hotReloadIfChanged();
-
         if (consumeShaderReloadRequest())
         {
             std::cout << "[Shader] Manual reload triggered\n";
@@ -190,6 +195,13 @@ int main()
 
         triangle.draw();
         plane.draw();
+
+        for (auto &p : players)
+        {
+            p.handleInput(window, deltaTime);
+            p.update(deltaTime);
+            p.draw(shader.id());
+        }
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDisable(GL_DEPTH_TEST);
