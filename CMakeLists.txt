@@ -15,6 +15,7 @@ add_executable(Opengl_game
     src/helpers/input.cpp
     src/helpers/player.cpp
     src/helpers/plane.cpp
+    src/helpers/cube.cpp
 
     dependencies/imgui/imgui.cpp
     dependencies/imgui/imgui_draw.cpp

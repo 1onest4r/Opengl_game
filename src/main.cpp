@@ -193,13 +193,16 @@ int main()
         glUniform1f(glGetUniformLocation(shader.id(), "time"), currentFrame);
         glUniform3f(glGetUniformLocation(shader.id(), "T"), 0.0, 0.0, currentFrame / 1.0);
 
-        triangle.draw();
-        plane.draw();
+        // triangle.draw();
+        plane.draw(shader.id());
+        // plane.draw();
 
         for (auto &p : players)
         {
+            shader.use();
             p.handleInput(window, deltaTime);
             p.update(deltaTime);
+            glUniform3fv(glGetUniformLocation(shader.id(), "objectColor"), 1, glm::value_ptr(p.color));
             p.draw(shader.id());
         }
 

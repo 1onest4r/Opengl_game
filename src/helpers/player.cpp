@@ -1,5 +1,4 @@
 #include "player.h"
-#include "triangle.h"
 
 Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
@@ -21,7 +20,7 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
     if (!isAlive)
         return;
 
-        if (glfwGetKey(window, moveKey) == GLFW_PRESS)
+    if (glfwGetKey(window, moveKey) == GLFW_PRESS)
     {
         position += forwardDir * speed * deltaTime;
     }
@@ -50,6 +49,6 @@ void Player::draw(unsigned int shaderID)
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "playerColor"), 1, &color[0]);
 
-    static Triangle t;
-    t.draw();
+    static Cube cube;
+    cube.draw();
 }

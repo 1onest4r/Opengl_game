@@ -7,7 +7,7 @@ public:
     Plane(float width, float heigh);
     ~Plane();
 
-    void draw();
+    void draw(unsigned int shaderID);
 
 private:
     unsigned int VAO;

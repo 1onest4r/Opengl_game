@@ -1,6 +1,6 @@
 #pragma once
 #include "config.h"
-#include "triangle.h"
+#include "cube.h"
 
 class Player
 {
@@ -14,6 +14,7 @@ public:
     glm::vec3 getPosition() const { return position; }
     bool alive() const { return isAlive; }
     void kill() { isAlive = false; }
+    glm::vec3 color;
 
 private:
     glm::vec3 position;
@@ -25,6 +26,4 @@ private:
     int attackKey;
 
     bool isAlive;
-
-    glm::vec3 color;
 };
