@@ -6,20 +6,22 @@
 #include "helpers/shader.h"
 #include "helpers/input.h"
 
-
-int main() {
+int main()
+{
 
     std::string shaderDir = std::string(ROOT_FOLDER) + "/src/shaders/";
 
-    //checking for glfw
-    if (!glfwInit()) {
+    // checking for glfw
+    if (!glfwInit())
+    {
         std::cout << "GLFW couldn't start" << std::endl;
         return -1;
     }
 
-    //check for context creation after creation
-    GLFWwindow* window = glfwCreateWindow(640, 480, "It's working!!!!", NULL, NULL);
-    if (!window) {
+    // check for context creation after creation
+    GLFWwindow *window = glfwCreateWindow(640, 480, "It's working!!!!", NULL, NULL);
+    if (!window)
+    {
         std::cout << "Window creation failed" << std::endl;
         return -1;
     }
@@ -27,8 +29,9 @@ int main() {
     glfwMakeContextCurrent(window);
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    //checking for functions that are related to opengl in the system
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    // checking for functions that are related to opengl in the system
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         std::cout << "Failed to initialize GLAD" << std::endl;
         glfwTerminate();
         return -1;
@@ -38,26 +41,23 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460 core");
 
-
-    //for z fighting reasons
+    // for z fighting reasons
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     // glfwSetCursorPosCallback(window, mouse_callback);
-    
+
     Triangle triangle;
-    
-    Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-    setActiveCamera(&camera);
+
+    Camera camera(glm::vec3(15.0f, 15.0f, 15.0f));
 
     Quad quad;
-    
+
     float fov = 45.0f;
-    glm::mat4 model = glm::mat4(1.0f);
     // glm::mat4 proj = glm::perspective(glm::radians(fov), 640.0f / 480.0f, 0.1f, 100.0f);
 
     // unsigned int shader = make_shader(
-    //     shaderDir + "vertex.vert", 
+    //     shaderDir + "vertex.vert",
     //     shaderDir + "fragment.frag"
     // );
 
@@ -69,16 +69,14 @@ int main() {
     Shader shader(
         "main",
         shaderDir + "vertex.vert",
-        shaderDir + "fragment.frag"
-    );
+        shaderDir + "fragment.frag");
 
     Shader screenShader(
         "screen",
         shaderDir + "screen.vert",
-        shaderDir + "screen.frag"
-    );
+        shaderDir + "screen.frag");
 
-    //set texture unifrom once
+    // set texture unifrom once
 
     // glUseProgram(screenShader);
     // glUniform1i(glGetUniformLocation(screenShader, "screenTexture"), 0);
@@ -109,7 +107,7 @@ int main() {
     // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 640, 480);
     // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
 
-    //created another fbo to attach to the existing fbo (i think)
+    // created another fbo to attach to the existing fbo (i think)
     unsigned int DepthTexture;
     glGenTextures(1, &DepthTexture);
     glBindTexture(GL_TEXTURE_2D, DepthTexture);
@@ -121,7 +119,8 @@ int main() {
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, DepthTexture, 0);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
         std::cout << "Framebuffer is not complete" << std::endl;
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -131,7 +130,8 @@ int main() {
 
     float angle = 0.0f;
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -141,12 +141,12 @@ int main() {
         // shader.hotReloadIfChanged();
         // screenShader.hotReloadIfChanged();
 
-        if (consumeShaderReloadRequest()) {
+        if (consumeShaderReloadRequest())
+        {
             std::cout << "[Shader] Manual reload triggered\n";
             shader.reload();
             screenShader.reload();
         }
-
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -154,16 +154,21 @@ int main() {
 
         processInput(window, deltaTime);
 
-        //animate the plane
-        angle += deltaTime*0.0;
+        // animate the plane
+        angle += deltaTime * 0.0;
         // glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 proj = glm::perspective(
-            glm::radians(fov),
-            640.0f / 480.0f,
+        // glm::mat4 proj = glm::perspective(
+        //     glm::radians(fov),
+        //     640.0f / 480.0f,
+        //     0.1f,
+        //     100.0f);
+        glm::mat4 proj = glm::ortho(
+            -2.0f, 2.0f,
+            -2.0f, 2.0f,
             0.1f,
-            100.0f
-        );
+            100.0f);
 
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
 
         glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -171,7 +176,7 @@ int main() {
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         // glClear(GL_COLOR_BUFFER_BIT);
-        
+
         shader.use();
         glm::mat4 view = camera.getViewMatrix();
 
@@ -179,8 +184,7 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(glGetUniformLocation(shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
         glUniform1f(glGetUniformLocation(shader.id(), "time"), currentFrame);
-        glUniform3f(glGetUniformLocation(shader.id(), "T"), 0.0,0.0,currentFrame/1.0);
-
+        glUniform3f(glGetUniformLocation(shader.id(), "T"), 0.0, 0.0, currentFrame / 1.0);
 
         triangle.draw();
 
@@ -200,25 +204,20 @@ int main() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
-
     }
-    //always flush/clean after code finishes (if necessary)
-    // glDeleteProgram(shader);
-    // glDeleteProgram(screenShader);
+    // always flush/clean after code finishes (if necessary)
+    //  glDeleteProgram(shader);
+    //  glDeleteProgram(screenShader);
 
     glfwSetCursorPosCallback(window, nullptr);
-    setActiveCamera(nullptr);
 
     // delete triangle;
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    
+
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
-
-
 }
-
