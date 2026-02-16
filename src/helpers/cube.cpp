@@ -58,7 +58,7 @@ void Cube::draw()
 {
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-    glBindVertexArray(0);
+    glFlush();
 }
 
 Cube::~Cube()

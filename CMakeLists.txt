@@ -8,9 +8,7 @@ add_executable(Opengl_game
     src/config.cpp
     src/main.cpp
     src/helpers/glad.c
-    src/helpers/triangle.cpp
     src/helpers/camera.cpp
-    src/helpers/quad.cpp
     src/helpers/shader.cpp
     src/helpers/input.cpp
     src/helpers/player.cpp

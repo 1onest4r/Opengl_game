@@ -40,15 +40,12 @@ Plane::Plane(float width, float height)
     glBindVertexArray(0);
 }
 
-void Plane::draw(unsigned int shaderID)
+void Plane::draw()
 {
-    glUseProgram(shaderID);
-
-    glUniform3f(glGetUniformLocation(shaderID, "objectColor"), 0.2f, 0.5f, 0.8f);
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-    glBindVertexArray(0);
+    glFlush();
 }
 
 Plane::~Plane()

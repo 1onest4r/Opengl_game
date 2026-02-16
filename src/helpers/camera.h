@@ -4,8 +4,6 @@
 class Camera
 {
 public:
-    float speed, yaw, pitch, sensitivity;
-
     Camera(glm::vec3 startPos);
 
     glm::mat4 getViewMatrix();
