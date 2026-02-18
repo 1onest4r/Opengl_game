@@ -62,14 +62,14 @@ int main()
     glDisable(GL_CULL_FACE);
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    Plane plane(20.0f, 15.0f);
+    Plane plane(50.0f, 15.0f);
     std::vector<Player> players;
 
     players.emplace_back(glm::vec3(0.0f, 1.0f, 5.0f), GLFW_KEY_W, GLFW_KEY_E, 2.0f);
     players.emplace_back(glm::vec3(3.0f, 1.0f, 5.0f), GLFW_KEY_S, GLFW_KEY_D, 2.0f);
     players.emplace_back(glm::vec3(5.0f, 1.0f, 10.0f), GLFW_KEY_X, GLFW_KEY_C, 2.0f);
 
-    Camera camera(glm::vec3(-30.0f, 30.0f, 10.0f));
+    Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
 
     Shader player_rendering_shader(
         "player_rendering",

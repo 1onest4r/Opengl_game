@@ -2,7 +2,7 @@
 
 Camera::Camera(glm::vec3 startPos)
     : position(startPos),
-      target(0.0f, 0.0f, 0.0f),
+      target(50.0f / 2.0f, 0.0f, 15.0f / 2.0f),
       up(0.0f, 1.0f, 0.0f)
 {
 }
