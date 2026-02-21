@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.12.0)
 project(Opengl_game VERSION 1.0.0)
 
 find_package(OpenGL REQUIRED)
+find_package(glfw3 3.4 REQUIRED)
 
 add_executable(Opengl_game
     src/config.h
@@ -14,6 +15,10 @@ add_executable(Opengl_game
     src/helpers/player.cpp
     src/helpers/plane.cpp
     src/helpers/cube.cpp
+
+    # dependencies/glad/glad.h
+    # dependencies/GLFW/libglfw3dll.a
+    # dependencies/libstdc++-6.dll
 
     dependencies/imgui/imgui.cpp
     dependencies/imgui/imgui_draw.cpp
@@ -30,8 +35,14 @@ target_include_directories(Opengl_game PRIVATE
     src/helpers
     dependencies/imgui
     dependencies/imgui/backends
+    dependencies/glad
+    # dependencies/GLFW
+)
+
+target_link_directories(Opengl_game PRIVATE 
+    # dependencies/GLFW
 )
 
 target_compile_definitions(Opengl_game PRIVATE ROOT_FOLDER="${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(Opengl_game glfw OpenGL::GL)
+target_link_libraries(Opengl_game glfw)
