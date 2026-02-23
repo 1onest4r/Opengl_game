@@ -2,15 +2,6 @@
 #include "config.h"
 #include "cube.h"
 
-// moveset is forward, turn right, jump, attack
-struct moveset {
-    int moveKey;
-    int turnKey;
-    int jumpKey;
-    int attackKey;
-} ;
-// moveset_1, moveset_2, moveset_3, moveset_4;
-
 class Player
 {
 public:
@@ -24,9 +15,9 @@ public:
     bool alive() const { return isAlive; }
     void kill() { isAlive = false; }
     glm::vec3 color;
+    glm::vec3 position;
 
 private:
-    glm::vec3 position;
     glm::vec3 forwardDir;
     float speed;
     float size;

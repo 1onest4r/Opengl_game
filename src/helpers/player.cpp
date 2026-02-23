@@ -35,6 +35,7 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
 
     if (glfwGetKey(window, attackKey) == GLFW_PRESS) // TODO: put cooldown on this one
     {
+        
         std::cout << "attack" << std::endl;
     }
 }

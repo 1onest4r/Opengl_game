@@ -17,6 +17,9 @@ void set_wireframe_mode(bool test)
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
+
+float finish_coordinate = 50.0f;
+
 int main()
 {
 
@@ -137,6 +140,10 @@ int main()
             p.handleInput(window, deltaTime);
             p.update(deltaTime);
             p.draw(player_rendering_shader.id());
+
+            if (p.position.x >= finish_coordinate) {
+                return 0;
+            }
         }
 
         ImGui::ShowDemoWindow();
