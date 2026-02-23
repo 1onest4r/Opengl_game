@@ -8,7 +8,8 @@ struct moveset {
     int turnKey;
     int jumpKey;
     int attackKey;
-} moveset_1, moveset_2, moveset_3, moveset_4;
+} ;
+// moveset_1, moveset_2, moveset_3, moveset_4;
 
 class Player
 {

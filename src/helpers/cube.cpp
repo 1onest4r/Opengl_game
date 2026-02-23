@@ -31,7 +31,7 @@ Cube::Cube(float size)
         colors.push_back(1.0f);
     }
 
-    vertexCount = positions.size() / 3;
+    vertexCount = positions.size() / 3; // 18*6/3 = 36 vertices?
 
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
