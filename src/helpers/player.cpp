@@ -1,5 +1,13 @@
 #include "player.h"
 
+// I'm making polar movement to use only 2 buttons for horizontal movement and 1 more for jumps
+// this is bad idea, movement gets abstracted a lot if I put it as an array
+// class is overhead
+// let's try struct
+/* moveset_1 =  GLFW_KEY_W, GLFW_KEY_E,
+// GLFW_KEY_S, GLFW_KEY_D,
+//  GLFW_KEY_X, GLFW_KEY_C */
+
 Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
@@ -25,13 +33,14 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
         position += forwardDir * speed * deltaTime;
     }
 
-    if (glfwGetKey(window, attackKey) == GLFW_PRESS)
+    if (glfwGetKey(window, attackKey) == GLFW_PRESS) // TODO: put cooldown on this one
     {
         std::cout << "attack" << std::endl;
     }
 }
 
-void Player::update(float deltaTime)
+// checks collision
+void Player::update(float deltaTime) 
 {
 }
 

@@ -2,6 +2,14 @@
 #include "config.h"
 #include "cube.h"
 
+// moveset is forward, turn right, jump, attack
+struct moveset {
+    int moveKey;
+    int turnKey;
+    int jumpKey;
+    int attackKey;
+} moveset_1, moveset_2, moveset_3, moveset_4;
+
 class Player
 {
 public:
