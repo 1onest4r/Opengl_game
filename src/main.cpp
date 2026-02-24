@@ -1,5 +1,8 @@
 #include "config.h"
 
+#include <algorithm>
+#include <random>
+
 #include "helpers/camera.h"
 #include "helpers/shader.h"
 #include "helpers/input.h"
@@ -18,7 +21,14 @@ void set_wireframe_mode(bool test)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
-float finish_coordinate = 50.0f;
+// I set amount of players to 12 for now
+uint32_t amount_of_players = 12;
+float player_cube_size = 2.0f;
+float player_track_padding = 1.0f;
+
+// TODO: proper restarting
+
+float finish_coordinate = 50.0f + player_cube_size/2;
 
 int main()
 {
@@ -65,12 +75,40 @@ int main()
     glDisable(GL_CULL_FACE);
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    Plane plane(50.0f, 15.0f);
+    Plane plane(finish_coordinate, amount_of_players*player_cube_size + (amount_of_players + 1)*(player_track_padding));
     std::vector<Player> players;
 
-    players.emplace_back(glm::vec3(0.0f, 1.0f, 5.0f), GLFW_KEY_W, GLFW_KEY_E, 2.0f);
-    players.emplace_back(glm::vec3(3.0f, 1.0f, 5.0f), GLFW_KEY_S, GLFW_KEY_D, 2.0f);
-    players.emplace_back(glm::vec3(5.0f, 1.0f, 10.0f), GLFW_KEY_X, GLFW_KEY_C, 2.0f);
+    // TODO: read keybinds from a file
+    // read indices as moveK = p*2, attackK = p*2 + 1, where p is iterator over players
+    int player_keybinds[] = {
+        GLFW_KEY_W, GLFW_KEY_E,
+        GLFW_KEY_S, GLFW_KEY_D,
+        GLFW_KEY_X, GLFW_KEY_C,
+    };
+
+    // we want to shuffle player order to confuse players
+    int player_order[amount_of_players];
+
+    for (int i = 0; i < amount_of_players; i++) {
+        player_order[i] = i;
+    }
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(&player_order[0], &player_order[amount_of_players-1], g);
+
+    // create players with loop and assign them positions
+    // x is player_size/2 for fully starting line
+    // y is 1.0f to be on floor
+    // z is calculated based on shuffled order
+    for (int i = 0; i < amount_of_players; i++) {
+        // we want offset to be fully on plane
+        int curr_player_z = player_cube_size/2 + player_order[i] * (player_cube_size + player_track_padding);
+        int curr_moveK = player_keybinds[i*2];
+        int curr_attackK = player_keybinds[i*2 + 1];
+        players.emplace_back((glm::vec3(player_cube_size/2, 1.0f, curr_player_z)), curr_moveK, curr_attackK, player_cube_size);
+        std::cout << player_order[i];
+    }
 
     Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
 

@@ -1,21 +1,18 @@
 #include "player.h"
 
-// I'm making polar movement to use only 2 buttons for horizontal movement and 1 more for jumps
-// this is bad idea, movement gets abstracted a lot if I put it as an array
-// class is overhead
-// let's try struct
-/* moveset_1 =  GLFW_KEY_W, GLFW_KEY_E,
+// moveK, attackK assigned for player 1-3:
+// GLFW_KEY_W, GLFW_KEY_E,
 // GLFW_KEY_S, GLFW_KEY_D,
-//  GLFW_KEY_X, GLFW_KEY_C */
+// GLFW_KEY_X, GLFW_KEY_C,
 
-Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
-    : position(startPos),
-      forwardDir(1.0f, 0.0f, 0.0f),
-      speed(5.5f),
-      moveKey(moveK),
-      attackKey(attackK),
-      isAlive(true),
-      size(size)
+Player::Player(glm::vec3 startPos, int moveK, int attackK, float size):
+    position(startPos),
+    forwardDir(1.0f, 0.0f, 0.0f),
+    speed(5.5f),
+    moveKey(moveK),
+    attackKey(attackK),
+    isAlive(true),
+    size(size)
 {
     color = glm::vec3(
         static_cast<float>(rand()) / RAND_MAX,
