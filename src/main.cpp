@@ -32,6 +32,7 @@ int main()
         return -1;
     }
 
+    glfwWindowHint(GLFW_SAMPLES, 8);
     // check for context creation after creation
     GLFWwindow *window = glfwCreateWindow(640, 480, "It's working!!!!", NULL, NULL);
     if (!window)
