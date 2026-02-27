@@ -17,8 +17,26 @@ void set_wireframe_mode(bool test)
     else
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
+
+Player *getLeader(std::vector<Player> &players)
+{
+    Player *leader = nullptr;
+
+    for (auto &p : players)
+    {
+        if (!p.isAlive)
+            continue;
+
+        if (!leader || p.position.x > leader->position.x)
+            leader = &p;
+    }
+
+    return leader;
+}
+
 int main()
 {
+    float finishLine = 40.0f;
 
     std::string shaderDir = std::string(ROOT_FOLDER) + "/src/shaders/";
 
@@ -67,8 +85,8 @@ int main()
     std::vector<Player> players;
 
     players.emplace_back(glm::vec3(0.0f, 1.0f, 5.0f), GLFW_KEY_W, GLFW_KEY_E, 2.0f);
-    players.emplace_back(glm::vec3(3.0f, 1.0f, 5.0f), GLFW_KEY_S, GLFW_KEY_D, 2.0f);
-    players.emplace_back(glm::vec3(5.0f, 1.0f, 10.0f), GLFW_KEY_X, GLFW_KEY_C, 2.0f);
+    players.emplace_back(glm::vec3(0.0f, 1.0f, 10.0f), GLFW_KEY_S, GLFW_KEY_D, 2.0f);
+    players.emplace_back(glm::vec3(0.0f, 1.0f, 15.0f), GLFW_KEY_X, GLFW_KEY_C, 2.0f);
 
     Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
 
@@ -136,7 +154,46 @@ int main()
         for (auto &p : players)
         {
             p.handleInput(window, deltaTime);
+        }
+        // attack logic
+        for (auto &attacker : players)
+        {
+            if (!attacker.isAlive || attacker.hasUsedKill)
+            {
+                continue;
+            }
+
+            if (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS)
+            {
+                Player *leader = getLeader(players);
+
+                if (leader)
+                {
+                    leader->isAlive = false;
+                    leader->respawnTimer = 3.0f;
+                    attacker.hasUsedKill = true;
+
+                    std::cout << "Leader killed\n";
+                }
+            }
+        }
+
+        for (auto &p : players)
+        {
             p.update(deltaTime);
+        }
+
+        for (auto &p : players)
+        {
+            if (p.isAlive && p.position.x >= finishLine)
+            {
+                std::cout << "Someone won\n";
+                glfwSetWindowShouldClose(window, true);
+            }
+        }
+
+        for (auto &p : players)
+        {
             p.draw(player_rendering_shader.id());
         }
 

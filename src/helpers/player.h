@@ -14,16 +14,28 @@ public:
     glm::vec3 getPosition() const { return position; }
     bool alive() const { return isAlive; }
     void kill() { isAlive = false; }
-    glm::vec3 color;
 
-private:
+    glm::vec3 color;
+    bool isAlive;
     glm::vec3 position;
-    glm::vec3 forwardDir;
-    float speed;
-    float size;
+
+    bool hasUsedKill = false;
+    bool hasRespawned = false;
 
     int moveKey;
     int attackKey;
+    float respawnTimer = 0.0f;
 
-    bool isAlive;
+private:
+    glm::vec3 forwardDir;
+    glm::vec3 startPosition;
+
+    float speed;
+    float size;
+
+    float leapDistance = 3.0f;
+    float leapCooldown = 0.0f;
+    float leapDelay = 0.25f;
+
+    bool moveKeyWasPressed = false;
 };

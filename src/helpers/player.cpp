@@ -2,6 +2,7 @@
 
 Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
+      startPosition(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
       speed(20.5f),
       moveKey(moveK),
@@ -20,19 +21,43 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
     if (!isAlive)
         return;
 
-    if (glfwGetKey(window, moveKey) == GLFW_PRESS)
+    bool movePressed = glfwGetKey(window, moveKey) == GLFW_PRESS;
+
+    if (movePressed && !moveKeyWasPressed && leapCooldown <= 0.0f)
     {
-        position += forwardDir * speed * deltaTime;
+        position += forwardDir * leapDistance;
+        leapCooldown = leapDelay;
     }
 
-    if (glfwGetKey(window, attackKey) == GLFW_PRESS)
+    moveKeyWasPressed = movePressed;
+
+    // attack
+    bool attackPressed = glfwGetKey(window, attackKey) == GLFW_PRESS;
+
+    if (attackPressed && !hasUsedKill)
     {
-        std::cout << "attack" << std::endl;
+        std::cout << "attack triggered" << std::endl;
+        // trigger actual kill from main
     }
 }
 
 void Player::update(float deltaTime)
 {
+    if (leapCooldown > 0.0f)
+        leapCooldown -= deltaTime;
+
+    if (!isAlive && !hasRespawned)
+    {
+        respawnTimer -= deltaTime;
+
+        if (respawnTimer <= 0.0f)
+        {
+            position = startPosition;
+            isAlive = true;
+            hasRespawned = true;
+            std::cout << "Respawned\n";
+        }
+    }
 }
 
 void Player::draw(unsigned int shaderID)
