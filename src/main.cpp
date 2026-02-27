@@ -68,7 +68,7 @@ int main()
 {
     float finishLine = 40.0f;
     // to not exceed players from predefined keys
-    int selectedPlayerCount = std::min(selectedPlayerCount, (int)predefinedPlayerKeys.size());
+    int selectedPlayerCount = 4;
 
     GameState gameState = GameState::MENU;
 
@@ -115,7 +115,7 @@ int main()
     glDisable(GL_CULL_FACE);
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    Plane plane(50.0f, 15.0f);
+    std::unique_ptr<Plane> plane;
     std::vector<Player> players;
 
     Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
@@ -170,11 +170,14 @@ int main()
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        plane_rendering_shader.use();
-        glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "time"), currentFrame);
-        plane.draw();
+        if (gameState == GameState::PLAYING && plane)
+        {
+            plane_rendering_shader.use();
+            glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+            glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "time"), currentFrame);
+            plane->draw();
+        }
 
         player_rendering_shader.use();
         glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
@@ -222,17 +225,45 @@ int main()
             }
         }
 
-        for (auto &p : players)
+        if (gameState == GameState::PLAYING)
         {
-            p.draw(player_rendering_shader.id());
+            for (auto &p : players)
+            {
+                p.draw(player_rendering_shader.id());
+            }
         }
 
         if (gameState == GameState::MENU)
         {
-            ImGui::Begin("Race Setup");
+            ImGuiWindowFlags window_flags =
+                ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+            ImGuiViewport *viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
+            ImGui::Begin("Main Menu", nullptr, window_flags);
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+
+            ImGui::SetCursorPos(ImVec2(
+                windowSize.x * 0.5f - 100,
+                windowSize.y * 0.5f - 80));
+
+            ImGui::Text("CHAOS KEYBOARD RACE");
+
+            ImGui::Spacing();
+            ImGui::Spacing();
 
             ImGui::SliderInt("Players", &selectedPlayerCount, 4, 14);
-            if (ImGui::Button("Start"))
+
+            ImGui::Spacing();
+
+            if (ImGui::Button("Start", ImVec2(200, 40)))
             {
 
                 players.clear();
@@ -240,14 +271,27 @@ int main()
                 int fakeCount = 2 + rand() % 5; // 2-6 fake players
                 int totalCount = fakeCount + selectedPlayerCount;
 
-                float spacing = 4.0f;
+                float spacing = 3.0f;
+                float planeWidth = totalCount * spacing;
+
+                plane = std::make_unique<Plane>(50.0f, planeWidth);
+
+                // generate lane positions
+                std::vector<float> lanePositions;
+                for (int i = 0; i < totalCount; i++)
+                {
+                    lanePositions.push_back(i * spacing);
+                }
+
+                // shuffle lanes
+                std::shuffle(lanePositions.begin(), lanePositions.end(), std::default_random_engine(rand()));
 
                 for (int i = 0; i < totalCount; i++)
                 {
                     glm::vec3 spawnPos(
                         0.0f,
                         1.0f,
-                        i * spacing);
+                        lanePositions[i]);
 
                     if (i < selectedPlayerCount)
                     {
@@ -274,9 +318,9 @@ int main()
                 gameState = GameState::PLAYING;
             }
 
-            ImGui::SameLine();
+            ImGui::Spacing();
 
-            if (ImGui::Button("Quit"))
+            if (ImGui::Button("Quit", ImVec2(200, 40)))
             {
                 glfwSetWindowShouldClose(window, true);
             }
