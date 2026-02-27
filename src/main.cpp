@@ -34,9 +34,43 @@ Player *getLeader(std::vector<Player> &players)
     return leader;
 }
 
+enum class GameState
+{
+    MENU,
+    PLAYING
+};
+
+struct Keypair
+{
+    int moveKey;
+    int attackKey;
+};
+
+std::vector<Keypair> predefinedPlayerKeys = {
+    {GLFW_KEY_Q, GLFW_KEY_W},
+    {GLFW_KEY_A, GLFW_KEY_S},
+    {GLFW_KEY_Z, GLFW_KEY_X},
+    {GLFW_KEY_E, GLFW_KEY_R},
+    {GLFW_KEY_D, GLFW_KEY_F},
+    {GLFW_KEY_C, GLFW_KEY_V},
+    {GLFW_KEY_T, GLFW_KEY_Y},
+    {GLFW_KEY_G, GLFW_KEY_H},
+    {GLFW_KEY_B, GLFW_KEY_N},
+    {GLFW_KEY_U, GLFW_KEY_I},
+    {GLFW_KEY_J, GLFW_KEY_K},
+    {GLFW_KEY_M, GLFW_KEY_COMMA},
+    {GLFW_KEY_O, GLFW_KEY_P},
+    {GLFW_KEY_L, GLFW_KEY_SEMICOLON},
+    {GLFW_KEY_PERIOD, GLFW_KEY_SLASH},
+};
+
 int main()
 {
     float finishLine = 40.0f;
+    // to not exceed players from predefined keys
+    int selectedPlayerCount = std::min(selectedPlayerCount, (int)predefinedPlayerKeys.size());
+
+    GameState gameState = GameState::MENU;
 
     std::string shaderDir = std::string(ROOT_FOLDER) + "/src/shaders/";
 
@@ -83,10 +117,6 @@ int main()
 
     Plane plane(50.0f, 15.0f);
     std::vector<Player> players;
-
-    players.emplace_back(glm::vec3(0.0f, 1.0f, 5.0f), GLFW_KEY_W, GLFW_KEY_E, 2.0f);
-    players.emplace_back(glm::vec3(0.0f, 1.0f, 10.0f), GLFW_KEY_S, GLFW_KEY_D, 2.0f);
-    players.emplace_back(glm::vec3(0.0f, 1.0f, 15.0f), GLFW_KEY_X, GLFW_KEY_C, 2.0f);
 
     Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
 
@@ -197,7 +227,63 @@ int main()
             p.draw(player_rendering_shader.id());
         }
 
-        ImGui::ShowDemoWindow();
+        if (gameState == GameState::MENU)
+        {
+            ImGui::Begin("Race Setup");
+
+            ImGui::SliderInt("Players", &selectedPlayerCount, 4, 14);
+            if (ImGui::Button("Start"))
+            {
+
+                players.clear();
+
+                int fakeCount = 2 + rand() % 5; // 2-6 fake players
+                int totalCount = fakeCount + selectedPlayerCount;
+
+                float spacing = 4.0f;
+
+                for (int i = 0; i < totalCount; i++)
+                {
+                    glm::vec3 spawnPos(
+                        0.0f,
+                        1.0f,
+                        i * spacing);
+
+                    if (i < selectedPlayerCount)
+                    {
+                        // real players
+                        Keypair keys = predefinedPlayerKeys[i];
+
+                        players.emplace_back(
+                            spawnPos,
+                            keys.moveKey,
+                            keys.attackKey,
+                            2.0f);
+                    }
+                    else
+                    {
+                        // fake ai players
+                        players.emplace_back(
+                            spawnPos,
+                            -1,
+                            -1,
+                            2.0f);
+                    }
+                }
+
+                gameState = GameState::PLAYING;
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Quit"))
+            {
+                glfwSetWindowShouldClose(window, true);
+            }
+
+            ImGui::End();
+        }
+
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         glfwSwapBuffers(window);
