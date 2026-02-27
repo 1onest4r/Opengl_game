@@ -3,7 +3,7 @@
 Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
-      speed(5.5f),
+      speed(20.5f),
       moveKey(moveK),
       attackKey(attackK),
       isAlive(true),
