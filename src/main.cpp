@@ -73,13 +73,20 @@ int main()
     }
 
     glfwWindowHint(GLFW_SAMPLES, 8);
+
+    GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
     // check for context creation after creation
-    GLFWwindow *window = glfwCreateWindow(640, 480, "It's working!!!!", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(mode->width, mode->height, "It's working!!!!", NULL, NULL);
     if (!window)
     {
         std::cout << "Window creation failed" << std::endl;
         return -1;
     }
+    glfwSetWindowPos(window, 0, 0);
 
     glfwMakeContextCurrent(window);
     // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
