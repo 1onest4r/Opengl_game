@@ -4,7 +4,7 @@
 class Plane
 {
 public:
-    Plane(float width, float heigh);
+    Plane(float width, float length);
     ~Plane();
 
     void draw();

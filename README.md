@@ -3,7 +3,7 @@
 first ever try on making game with Opengl and c++!
 
 ===============MAIN TASKS==========
-Add check for kill.
+implement
 
 =====OPTIONAL FEATURE IF USEFUL=====
 THEN implement UBO for camera matrices.

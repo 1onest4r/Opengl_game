@@ -1,15 +1,15 @@
 #include "plane.h"
 
-Plane::Plane(float width, float height)
+Plane::Plane(float width, float length)
 {
     std::vector<float> positions = {
         0.0f, 0.0f, 0.0f,
-        width, 0.0f, height,
-        0.0f, 0.0f, height,
+        width, 0.0f, length,
+        0.0f, 0.0f, length,
 
         width, 0.0f, 0.0f,
         0.0f, 0.0f, 0.0f,
-        width, 0.0f, height};
+        width, 0.0f, length};
 
     std::vector<float> colors(18, 0.7f);
 

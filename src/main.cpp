@@ -6,18 +6,6 @@
 #include "helpers/plane.h"
 #include "helpers/player.h"
 
-void set_wireframe_mode(bool test)
-{
-    static int k = 0;
-    if (test)
-        k++;
-
-    if (k % 2 == 0)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    else
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-}
-
 Player *getLeader(std::vector<Player> &players)
 {
     Player *leader = nullptr;
@@ -135,25 +123,27 @@ int main()
 
     float angle = 0.0f;
 
+    int w_width, w_height;
+    glfwGetWindowSize(window, &w_width, &w_height);
+    glViewport(0, 0, w_width, w_height);
+
+    float aspect = (float)w_width / (float)w_height;
+
     glm::mat4 proj = glm::ortho(
-        -20.0f, 20.0f,
-        -20.0f, 20.0f,
+        -30.0f * aspect, 30.0f * aspect,
+        -30.0f, 30.0f,
         1.0f,
         1000.0f);
     glm::mat4 view = camera.getViewMatrix();
 
     while (!glfwWindowShouldClose(window))
     {
-        int w_width, w_height;
-        glfwGetWindowSize(window, &w_width, &w_height);
-        glViewport(0, 0, w_width, w_height);
 
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         glfwPollEvents();
-        set_wireframe_mode(glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS);
 
         if (consumeShaderReloadRequest())
         {
@@ -273,8 +263,18 @@ int main()
 
                 float spacing = 3.0f;
                 float planeWidth = totalCount * spacing;
+                float planeLength = 50.0f;
 
-                plane = std::make_unique<Plane>(50.0f, planeWidth);
+                plane = std::make_unique<Plane>(planeLength, planeWidth);
+
+                glm::vec3 planeCenter(
+                    planeLength * 0.5f,
+                    0.0f,
+                    planeWidth * 0.5f);
+
+                camera = Camera(glm::vec3(-30.0f, 30.0f, planeCenter.z * 3.0f));
+                camera.setTarget(planeCenter);
+                view = camera.getViewMatrix();
 
                 // generate lane positions
                 std::vector<float> lanePositions;
