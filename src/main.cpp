@@ -247,29 +247,65 @@ int main()
 
             ImVec2 windowSize = ImGui::GetWindowSize();
 
-            ImGui::SetCursorPos(ImVec2(
-                windowSize.x * 0.5f - 100,
-                windowSize.y * 0.5f - 80));
+            // --- 1. Vertical Centering ---
+            // Estimate the total height of our menu elements (text + slider row + 2 buttons + spacing)
+            float estimatedMenuHeight = 180.0f;
+            ImGui::SetCursorPosY((windowSize.y - estimatedMenuHeight) * 0.5f);
 
-            ImGui::Text("CHAOS KEYBOARD RACE");
+            // --- 2. Center Title Text ---
+            const char *titleText = "CHAOS KEYBOARD RACE";
+            float titleWidth = ImGui::CalcTextSize(titleText).x;
+            ImGui::SetCursorPosX((windowSize.x - titleWidth) * 0.5f);
+            ImGui::Text("%s", titleText);
 
             ImGui::Spacing();
             ImGui::Spacing();
 
-            ImGui::SliderInt("Players", &selectedPlayerCount, 4, 14);
+            // --- 3. Slider with Arrows ---
+            float sliderWidth = 200.0f;
+            float arrowWidth = ImGui::GetFrameHeight(); // Standard square button size
+            float spacing = ImGui::GetStyle().ItemSpacing.x;
+            float totalSliderRowWidth = arrowWidth + spacing + sliderWidth + spacing + arrowWidth;
+
+            // Center the entire slider row
+            ImGui::SetCursorPosX((windowSize.x - totalSliderRowWidth) * 0.5f);
+
+            // Left Arrow
+            if (ImGui::ArrowButton("##left_arrow", ImGuiDir_Left))
+            {
+                selectedPlayerCount = std::max(4, selectedPlayerCount - 1);
+            }
+
+            ImGui::SameLine();
+
+            // Constrain Slider Width
+            ImGui::PushItemWidth(sliderWidth);
+            // Hide the label on the right with "##", but show text inside the slider
+            ImGui::SliderInt("##players_slider", &selectedPlayerCount, 4, 14, "%d Players");
+            ImGui::PopItemWidth();
+
+            ImGui::SameLine();
+
+            // Right Arrow
+            if (ImGui::ArrowButton("##right_arrow", ImGuiDir_Right))
+            {
+                selectedPlayerCount = std::min(14, selectedPlayerCount + 1);
+            }
 
             ImGui::Spacing();
+            ImGui::Spacing();
 
+            // --- 4. Center Start Button ---
+            ImGui::SetCursorPosX((windowSize.x - 200.0f) * 0.5f);
             if (ImGui::Button("Start", ImVec2(200, 40)))
             {
-
                 players.clear();
 
                 int fakeCount = 2 + rand() % 5; // 2-6 fake players
                 int totalCount = fakeCount + selectedPlayerCount;
 
-                float spacing = 3.0f;
-                float planeWidth = totalCount * spacing;
+                float spacingDist = 3.0f;
+                float planeWidth = totalCount * spacingDist;
                 float planeLength = 50.0f;
 
                 plane = std::make_unique<Plane>(planeLength, planeWidth);
@@ -287,7 +323,7 @@ int main()
                 std::vector<float> lanePositions;
                 for (int i = 0; i < totalCount; i++)
                 {
-                    lanePositions.push_back(i * spacing);
+                    lanePositions.push_back(i * spacingDist);
                 }
 
                 // shuffle lanes
@@ -327,6 +363,8 @@ int main()
 
             ImGui::Spacing();
 
+            // --- 5. Center Quit Button ---
+            ImGui::SetCursorPosX((windowSize.x - 200.0f) * 0.5f);
             if (ImGui::Button("Quit", ImVec2(200, 40)))
             {
                 glfwSetWindowShouldClose(window, true);
