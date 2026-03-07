@@ -21,6 +21,15 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
     tapTimer += deltaTime;
     stateTimer += deltaTime;
 
+    // // --- NEW: Introduce "Hesitation" ---
+    // // Every 0.5 seconds, there is a 30% chance the AI "gets distracted"
+    // // and pauses for a random amount of time.
+    // if (stateTimer > 0.5f && (rand() % 100 < 30))
+    // {
+    //     tapTimer -= (0.2f + ((rand() % 100) / 500.0f));
+    //     stateTimer = 0.0f;
+    // }
+
     // --- Personality State Machine ---
     switch (personality)
     {
@@ -37,13 +46,13 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
         {
             isSprinting = false;
             stateTimer = 0.0f;
-            currentTapInterval = 0.3f; // Exhausted slow tap
+            currentTapInterval = 0.6f; // Exhausted slow tap
         }
         else if (!isSprinting && stateTimer > 2.5f)
         {
             isSprinting = true;
             stateTimer = 0.0f;
-            currentTapInterval = 0.05f; // Extremely fast burst tap (Mashing)
+            currentTapInterval = 0.1f; // Extremely fast burst tap (Mashing)
         }
         break;
 
@@ -99,15 +108,15 @@ void AIController::generateNewTapInterval()
     switch (personality)
     {
     case AIPersonality::STEADY:
-        currentTapInterval = 0.12f + ((rand() % 100) / 1000.0f);
+        currentTapInterval = 0.54f + ((rand() % 100) / 1000.0f);
         break;
     case AIPersonality::SPRINTER:
         break; // Handled dynamically in the update loop
     case AIPersonality::CHAOTIC:
-        currentTapInterval = 0.08f + ((rand() % 100) / 300.0f);
+        currentTapInterval = 0.36f + ((rand() % 100) / 300.0f);
         break;
     case AIPersonality::AGGRESSIVE:
-        currentTapInterval = 0.15f + ((rand() % 100) / 1000.0f);
+        currentTapInterval = 0.80f + ((rand() % 100) / 1000.0f);
         break;
     }
 }
