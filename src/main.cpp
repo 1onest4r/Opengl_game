@@ -25,7 +25,8 @@ Player *getLeader(std::vector<Player> &players)
 enum class GameState
 {
     MENU,
-    PLAYING
+    PLAYING,
+    GAME_OVER
 };
 
 struct Keypair
@@ -57,6 +58,8 @@ int main()
     float finishLine = 50.0f;
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
+    glm::vec3 winnerColor = glm::vec3(1.0f);
+    std::string winnerName = "";
 
     GameState gameState = GameState::MENU;
 
@@ -183,49 +186,57 @@ int main()
         glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
         glUniform1f(glGetUniformLocation(player_rendering_shader.id(), "time"), currentFrame);
 
-        for (auto &p : players)
-        {
-            p.handleInput(window, deltaTime);
-        }
-        // attack logic
-        for (auto &attacker : players)
-        {
-            if (!attacker.isAlive || attacker.hasUsedKill)
-            {
-                continue;
-            }
-
-            if (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS)
-            {
-                Player *leader = getLeader(players);
-
-                if (leader)
-                {
-                    leader->isAlive = false;
-                    leader->respawnTimer = 3.0f;
-                    attacker.hasUsedKill = true;
-
-                    std::cout << "Leader killed\n";
-                }
-            }
-        }
-
-        for (auto &p : players)
-        {
-            p.update(deltaTime);
-        }
-
-        for (auto &p : players)
-        {
-            if (p.isAlive && p.position.x >= finishLine)
-            {
-                std::cout << "Someone won\n";
-                glfwSetWindowShouldClose(window, true);
-            }
-        }
-
         if (gameState == GameState::PLAYING)
         {
+            for (auto &p : players)
+            {
+                p.handleInput(window, deltaTime);
+            }
+
+            // attack logic
+            for (auto &attacker : players)
+            {
+                if (!attacker.isAlive || attacker.hasUsedKill)
+                    continue;
+
+                if (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS)
+                {
+                    Player *leader = getLeader(players);
+                    if (leader)
+                    {
+                        leader->isAlive = false;
+                        leader->respawnTimer = 3.0f;
+                        attacker.hasUsedKill = true;
+                        std::cout << "Leader killed\n";
+                    }
+                }
+            }
+
+            for (auto &p : players)
+            {
+                p.update(deltaTime);
+            }
+
+            for (int i = 0; i < players.size(); i++)
+            {
+                if (players[i].isAlive && players[i].position.x >= finishLine)
+                {
+                    winnerColor = players[i].color; // Store their exact color
+                    if (i < selectedPlayerCount)
+                    {
+                        winnerName = "PLAYER " + std::to_string(i + 1) + " WINS!";
+                    }
+                    else
+                    {
+                        winnerName = "AN AI PLAYER WON!";
+                    }
+
+                    gameState = GameState::GAME_OVER;
+                    break; // Stop checking, the race is over!
+                }
+            }
+
+            // Draw players while playing
             for (auto &p : players)
             {
                 p.draw(player_rendering_shader.id());
@@ -306,58 +317,48 @@ int main()
                 int fakeCount = 2 + rand() % 5; // 2-6 fake players
                 int totalCount = fakeCount + selectedPlayerCount;
 
+                // --- NEW: 20 Contrasting Colors ---
+                std::vector<glm::vec3> availableColors = {
+                    {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {1.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.5f}, {0.5f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.5f}, {0.5f, 0.0f, 1.0f}, {0.8f, 0.4f, 0.1f}, {0.8f, 0.0f, 0.0f}, {0.6f, 0.6f, 0.0f}, {1.0f, 0.6f, 0.6f}, {0.9f, 0.8f, 0.2f}, {0.2f, 0.8f, 0.8f}, {0.9f, 0.6f, 0.8f}, {1.0f, 0.8f, 0.5f}, {0.7f, 0.7f, 0.7f}, {1.0f, 1.0f, 1.0f}};
+                // Shuffle the colors so it's random every match
+                std::shuffle(availableColors.begin(), availableColors.end(), std::default_random_engine(rand()));
+                // ----------------------------------
+
                 float spacingDist = 3.0f;
                 float planeWidth = totalCount * spacingDist;
                 float planeLength = 50.0f;
 
                 plane = std::make_unique<Plane>(planeLength, planeWidth);
 
-                glm::vec3 planeCenter(
-                    planeLength * 0.5f,
-                    0.0f,
-                    planeWidth * 0.5f);
+                glm::vec3 planeCenter(planeLength * 0.5f, 0.0f, planeWidth * 0.5f);
 
                 camera = Camera(glm::vec3(-30.0f, 30.0f, planeCenter.z * 3.0f));
                 camera.setTarget(planeCenter);
                 view = camera.getViewMatrix();
 
-                // generate lane positions
                 std::vector<float> lanePositions;
                 for (int i = 0; i < totalCount; i++)
                 {
                     lanePositions.push_back(i * spacingDist);
                 }
-
-                // shuffle lanes
                 std::shuffle(lanePositions.begin(), lanePositions.end(), std::default_random_engine(rand()));
 
                 for (int i = 0; i < totalCount; i++)
                 {
-                    glm::vec3 spawnPos(
-                        0.0f,
-                        1.0f,
-                        lanePositions[i]);
+                    glm::vec3 spawnPos(0.0f, 1.0f, lanePositions[i]);
 
                     if (i < selectedPlayerCount)
                     {
-                        // real players
                         Keypair keys = predefinedPlayerKeys[i];
-
-                        players.emplace_back(
-                            spawnPos,
-                            keys.moveKey,
-                            keys.attackKey,
-                            2.0f);
+                        players.emplace_back(spawnPos, keys.moveKey, keys.attackKey, 2.0f);
                     }
                     else
                     {
-                        // fake ai players
-                        players.emplace_back(
-                            spawnPos,
-                            -1,
-                            -1,
-                            2.0f);
+                        players.emplace_back(spawnPos, -1, -1, 2.0f);
                     }
+
+                    // --- NEW: Assign the unique color to the player ---
+                    players.back().color = availableColors[i];
                 }
 
                 gameState = GameState::PLAYING;
@@ -372,6 +373,70 @@ int main()
                 glfwSetWindowShouldClose(window, true);
             }
 
+            ImGui::End();
+        }
+
+        if (gameState == GameState::GAME_OVER)
+        {
+            ImGuiWindowFlags window_flags =
+                ImGuiWindowFlags_NoTitleBar |
+                ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove |
+                ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+            ImGuiViewport *viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
+            ImGui::Begin("Game Over", nullptr, window_flags);
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            float uiScale = std::max(1.0f, windowSize.y / 540.0f);
+            ImGui::SetWindowFontScale(uiScale);
+
+            float buttonWidth = 250.0f * uiScale;
+            float buttonHeight = 40.0f * uiScale;
+
+            // Estimate height to center everything vertically
+            float estimatedHeight = 220.0f * uiScale;
+            ImGui::SetCursorPosY((windowSize.y - estimatedHeight) * 0.5f);
+
+            // 1. Center the Win Text
+            float titleWidth = ImGui::CalcTextSize(winnerName.c_str()).x;
+            ImGui::SetCursorPosX((windowSize.x - titleWidth) * 0.5f);
+            ImGui::Text("%s", winnerName.c_str());
+
+            ImGui::Dummy(ImVec2(0.0f, 20.0f * uiScale));
+
+            // 2. Draw a big colored square representing the player
+            float cubeSize = 80.0f * uiScale;
+            ImGui::SetCursorPosX((windowSize.x - cubeSize) * 0.5f);
+
+            // ColorButton creates a colored rectangle block natively in ImGui
+            ImVec4 winCol(winnerColor.x, winnerColor.y, winnerColor.z, 1.0f);
+            ImGuiColorEditFlags flags = ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop | ImGuiColorEditFlags_NoOptions | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoBorder;
+            ImGui::ColorButton("WinnerBlock", winCol, flags, ImVec2(cubeSize, cubeSize));
+
+            ImGui::Dummy(ImVec2(0.0f, 30.0f * uiScale));
+
+            // 3. Back to Main Menu Button
+            ImGui::SetCursorPosX((windowSize.x - buttonWidth) * 0.5f);
+            if (ImGui::Button("Back to Main Menu", ImVec2(buttonWidth, buttonHeight)))
+            {
+                gameState = GameState::MENU;
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 10.0f * uiScale));
+
+            // 4. Quit Button
+            ImGui::SetCursorPosX((windowSize.x - buttonWidth) * 0.5f);
+            if (ImGui::Button("Quit Game", ImVec2(buttonWidth, buttonHeight)))
+            {
+                glfwSetWindowShouldClose(window, true);
+            }
+
+            ImGui::SetWindowFontScale(1.0f);
             ImGui::End();
         }
 
