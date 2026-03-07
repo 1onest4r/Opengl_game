@@ -26,16 +26,17 @@ public:
     int attackKey;
     float respawnTimer = 0.0f;
 
-private:
+    float leapDistance = 3.0f;
+    float leapCooldown = 0.0f;
+    float leapDelay = 0.25f;
+
     glm::vec3 forwardDir;
+
+private:
     glm::vec3 startPosition;
 
     float speed;
     float size;
-
-    float leapDistance = 3.0f;
-    float leapCooldown = 0.0f;
-    float leapDelay = 0.25f;
 
     bool moveKeyWasPressed = false;
 };

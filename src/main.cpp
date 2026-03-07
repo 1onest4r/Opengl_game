@@ -5,6 +5,7 @@
 #include "helpers/input.h"
 #include "helpers/plane.h"
 #include "helpers/player.h"
+#include "helpers/ai.h"
 
 Player *getLeader(std::vector<Player> &players)
 {
@@ -56,10 +57,12 @@ std::vector<Keypair> predefinedPlayerKeys = {
 int main()
 {
     float finishLine = 50.0f;
+
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
     glm::vec3 winnerColor = glm::vec3(1.0f);
     std::string winnerName = "";
+    std::map<int, AIController> aiBrains;
 
     GameState gameState = GameState::MENU;
 
@@ -188,55 +191,86 @@ int main()
 
         if (gameState == GameState::PLAYING)
         {
-            for (auto &p : players)
-            {
-                p.handleInput(window, deltaTime);
-            }
+            Player *currentLeader = getLeader(players);
 
-            // attack logic
-            for (auto &attacker : players)
+            // --- MOVEMENT & INPUT LOGIC ---
+            for (int i = 0; i < players.size(); i++)
             {
-                if (!attacker.isAlive || attacker.hasUsedKill)
-                    continue;
-
-                if (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS)
+                if (players[i].moveKey != -1)
                 {
-                    Player *leader = getLeader(players);
-                    if (leader)
+                    // It's a real player
+                    players[i].handleInput(window, deltaTime);
+                }
+                else
+                {
+                    // It's an AI player, update their brain
+                    if (aiBrains.find(i) != aiBrains.end())
                     {
-                        leader->isAlive = false;
-                        leader->respawnTimer = 3.0f;
-                        attacker.hasUsedKill = true;
-                        std::cout << "Leader killed\n";
+                        aiBrains[i].update(deltaTime, players[i], currentLeader);
                     }
                 }
             }
 
+            // --- ATTACK LOGIC ---
+            for (int i = 0; i < players.size(); i++)
+            {
+                auto &attacker = players[i];
+                if (!attacker.isAlive || attacker.hasUsedKill)
+                    continue;
+
+                bool wantsToAttack = false;
+
+                // Human Attack check
+                if (attacker.attackKey != -1)
+                {
+                    wantsToAttack = (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS);
+                }
+                // AI Attack check
+                else if (aiBrains.find(i) != aiBrains.end())
+                {
+                    wantsToAttack = aiBrains[i].wantsToAttack();
+                    if (wantsToAttack)
+                        aiBrains[i].consumeAttack();
+                }
+
+                if (wantsToAttack)
+                {
+                    Player *leader = getLeader(players);
+                    // AI doesn't kill itself if it is the leader
+                    if (leader && leader != &attacker)
+                    {
+                        leader->isAlive = false;
+                        leader->respawnTimer = 3.0f;
+                        leader->hasRespawned = false; // Important: Trigger respawn logic
+                        attacker.hasUsedKill = true;
+                        std::cout << "Leader killed!\n";
+                    }
+                }
+            }
+
+            // Update physics/cooldowns for everyone
             for (auto &p : players)
             {
                 p.update(deltaTime);
             }
 
+            // Win condition
             for (int i = 0; i < players.size(); i++)
             {
                 if (players[i].isAlive && players[i].position.x >= finishLine)
                 {
-                    winnerColor = players[i].color; // Store their exact color
+                    winnerColor = players[i].color;
                     if (i < selectedPlayerCount)
-                    {
                         winnerName = "PLAYER " + std::to_string(i + 1) + " WINS!";
-                    }
                     else
-                    {
                         winnerName = "AN AI PLAYER WON!";
-                    }
 
                     gameState = GameState::GAME_OVER;
-                    break; // Stop checking, the race is over!
+                    break;
                 }
             }
 
-            // Draw players while playing
+            // Draw players
             for (auto &p : players)
             {
                 p.draw(player_rendering_shader.id());
@@ -355,6 +389,7 @@ int main()
                     else
                     {
                         players.emplace_back(spawnPos, -1, -1, 2.0f);
+                        aiBrains[i] = AIController();
                     }
 
                     // --- NEW: Assign the unique color to the player ---
