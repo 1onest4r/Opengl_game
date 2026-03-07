@@ -54,7 +54,7 @@ std::vector<Keypair> predefinedPlayerKeys = {
 
 int main()
 {
-    float finishLine = 40.0f;
+    float finishLine = 50.0f;
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
 
@@ -173,6 +173,8 @@ int main()
             glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
             glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "time"), currentFrame);
+            glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "finishLine"), finishLine);
+
             plane->draw();
         }
 

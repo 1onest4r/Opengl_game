@@ -5,8 +5,9 @@ layout (location=0) in vec3 vertPos;
 
 uniform mat4 view;
 uniform mat4 proj;
-out vec2 coords;
+out vec3 worldPos;
+
 void main() {
-    coords = vertPos.xz/vec2(20.,15.);
+    worldPos = vertPos;
     gl_Position = proj * view * vec4(vertPos, 1.0);
 }
