@@ -14,6 +14,7 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
         static_cast<float>(rand()) / RAND_MAX,
         static_cast<float>(rand()) / RAND_MAX,
         static_cast<float>(rand()) / RAND_MAX);
+    glGenVertexArrays(1, &VAO_id);
 }
 
 void Player::handleInput(GLFWwindow *window, float deltaTime)
@@ -72,6 +73,9 @@ void Player::draw(unsigned int shaderID)
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
 
-    static Cube cube;
-    cube.draw();
+    glBindVertexArray(VAO_id);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glFlush();
+    // static Cube cube;
+    // cube.draw();
 }

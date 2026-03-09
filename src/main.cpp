@@ -109,6 +109,14 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460 core");
 
+    const GLubyte *renderer = glGetString(GL_RENDERER);
+    const GLubyte *vendor = glGetString(GL_VENDOR);
+    const GLubyte *version = glGetString(GL_VERSION);
+
+    std::cout << "GPU: " << renderer << std::endl;
+    std::cout << "Vendor: " << vendor << std::endl;
+    std::cout << "OpenGL Version: " << version << std::endl;
+
     // for z fighting reasons
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

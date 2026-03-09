@@ -34,7 +34,7 @@ public:
 
 private:
     glm::vec3 startPosition;
-
+    GLuint VAO_id;
     float speed;
     float size;
 
