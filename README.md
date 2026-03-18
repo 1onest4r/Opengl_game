@@ -3,12 +3,9 @@
 first ever try on making game with Opengl and c++!
 
 ===============MAIN TASKS==========
-implement
+change: the movement to linear rather can const jumps
 
-=====OPTIONAL FEATURE IF USEFUL=====
-THEN implement UBO for camera matrices.
+fix: framerate based gameplay (make the game consistent even on potato)
+fix: ai cant kill player
 
-eric tasks:
-Add multiple players.(make it dynamic)
-to make it dynamic i must first
-dynamically update (camera, plane, viewport size)
+add: add some background effects
