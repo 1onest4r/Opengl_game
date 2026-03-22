@@ -6,6 +6,7 @@
 #include "helpers/plane.h"
 #include "helpers/player.h"
 #include "helpers/ai.h"
+#include "helpers/background.h"
 
 Player *getLeader(std::vector<Player> &players)
 {
@@ -139,6 +140,13 @@ int main()
         shaderDir + "plane.vert",
         shaderDir + "plane.frag");
 
+    Shader background_shader(
+        "background",
+        shaderDir + "background.vert",
+        shaderDir + "background.frag");
+
+    Background background(shaderDir);
+
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
 
@@ -180,6 +188,8 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        background.draw(currentFrame);
 
         if (gameState == GameState::PLAYING && plane)
         {
