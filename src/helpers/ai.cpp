@@ -71,19 +71,20 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
             stateTimer = 0.0f;
         }
 
+        //====================nevermind ai killing players are no fun!======================
         // Wait to use the one-time kill on the leader
-        if (!myPlayer.hasUsedKill && leader && leader != &myPlayer)
-        {
-            // If the leader is in front of them
-            if (leader->position.x > myPlayer.position.x + 1.0f)
-            {
-                // Small random chance per frame to simulate human reaction time
-                if (rand() % 1000 < 10)
-                {
-                    _wantsToAttack = true;
-                }
-            }
-        }
+        // if (!myPlayer.hasUsedKill && leader && leader != &myPlayer)
+        // {
+        //     // If the leader is in front of them
+        //     if (leader->position.x > myPlayer.position.x + 1.0f)
+        //     {
+        //         // Small random chance per frame to simulate human reaction time
+        //         if (rand() % 1000 < 10)
+        //         {
+        //             _wantsToAttack = true;
+        //         }
+        //     }
+        // }
         break;
     }
 
