@@ -23,6 +23,7 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
         return;
 
     bool movePressed = glfwGetKey(window, moveKey) == GLFW_PRESS;
+    isMoving = glfwGetKey(window, moveKey) == GLFW_PRESS;
 
     if (movePressed)
     {
@@ -43,10 +44,21 @@ void Player::update(float deltaTime)
     if (leapCooldown > 0.0f)
         leapCooldown -= deltaTime;
 
+    // FIX: Use the 'isMoving' variable that is set by handleInput (for humans)
+    // or by the AIController (for bots).
+    // DO NOT check glfwGetKey here, as bots don't have keys!
+    float stretchTarget = isMoving ? 1.0f : 0.0f;
+
+    // Smooth out the animation
+    float lerpSpeed = isMoving ? 5.0f : 8.0f;
+    visualStretch += (stretchTarget - visualStretch) * lerpSpeed * deltaTime;
+
     if (!isAlive && !hasRespawned)
     {
-        respawnTimer -= deltaTime;
+        // If dead, ensure we curl up immediately
+        isMoving = false;
 
+        respawnTimer -= deltaTime;
         if (respawnTimer <= 0.0f)
         {
             position = startPosition;
@@ -68,6 +80,7 @@ void Player::draw(unsigned int shaderID)
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
+    glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
 
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

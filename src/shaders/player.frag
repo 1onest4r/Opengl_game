@@ -8,6 +8,7 @@ uniform mat4 view;
 uniform float time;
 uniform mat4 model;
 uniform mat4 proj;
+uniform float uStretch;
 
 in vec4 pos;//world
 
@@ -24,15 +25,30 @@ float sphere(vec3 p,vec3 c,float r)
     return distance(p,c)-r;
 }
 
-float blob(vec3 p,vec3 center)
+float blob(vec3 p, vec3 center)
 {
     float radius = 1.0;
-    float sdf = sphere(p,center,radius);
+    
+    // Sphere 1: The "Head"
+    // We move the head slightly forward as we stretch
+    vec3 headPos = center + vec3(uStretch * 0.5, 0.0, 0.0);
+    float sdf = sphere(p, headPos, radius);
 
-    //sdf = smin(sdf,sphere(p,center+vec3(0.0,radius*0.8 + 0.5*cos(10.0*time),0.0),radius*0.6),0.3);
-
-    float a = time*5.0;
-    sdf = smin(sdf,sphere(p,center+vec3(radius*(1.0+2.0*cos(a)),0.0,0.0),radius),0.3);
+    // Sphere 2: The "Tail"
+    // The tail drags behind proportional to stretch
+    // We add a tiny "squish" pulse only when moving
+    float moveWiggle = sin(time * 15.0) * 0.1 * uStretch;
+    
+    // Drag the tail back. Since players move +X, tail is -X
+    vec3 tailPos = center - vec3(uStretch * 1.5 + moveWiggle, 0.0, 0.0);
+    
+    // As it stretches, the tail gets slightly thinner (volume preservation)
+    float tailRadius = radius * (1.0 - uStretch * 0.2);
+    
+    // Blend them together
+    // Increasing the 'k' (0.6) makes the "neck" of the slug thicker
+    sdf = smin(sdf, sphere(p, tailPos, tailRadius), 0.6);
+    
     return sdf;
 }
 

@@ -30,6 +30,7 @@ private:
     float chaoticSpeed = 1.0f;
     bool isPausing;
     float pauseTimer;
+    float pauseDuration;
 
     bool _wantsToAttack;
 

@@ -30,6 +30,8 @@ public:
     float leapCooldown = 0.0f;
     float leapDelay = 0.25f;
     float speed;
+    float visualStretch = 0.0f;
+    bool isMoving = false;
 
     glm::vec3 forwardDir;
 
