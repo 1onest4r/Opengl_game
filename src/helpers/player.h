@@ -29,13 +29,13 @@ public:
     float leapDistance = 3.0f;
     float leapCooldown = 0.0f;
     float leapDelay = 0.25f;
+    float speed;
 
     glm::vec3 forwardDir;
 
 private:
     glm::vec3 startPosition;
     GLuint VAO_id;
-    float speed;
     float size;
 
     bool moveKeyWasPressed = false;

@@ -4,7 +4,7 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
       startPosition(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
-      speed(20.5f),
+      speed(15.5f),
       moveKey(moveK),
       attackKey(attackK),
       isAlive(true),
@@ -24,13 +24,10 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
 
     bool movePressed = glfwGetKey(window, moveKey) == GLFW_PRESS;
 
-    if (movePressed && !moveKeyWasPressed && leapCooldown <= 0.0f)
+    if (movePressed)
     {
-        position += forwardDir * leapDistance;
-        leapCooldown = leapDelay;
+        position += forwardDir * speed * deltaTime;
     }
-
-    moveKeyWasPressed = movePressed;
 
     // attack
     bool attackPressed = glfwGetKey(window, attackKey) == GLFW_PRESS;
@@ -38,7 +35,6 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
     if (attackPressed && !hasUsedKill)
     {
         std::cout << "attack triggered" << std::endl;
-        // trigger actual kill from main
     }
 }
 

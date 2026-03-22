@@ -27,6 +27,9 @@ private:
     float currentTapInterval;
     float stateTimer;
     bool isSprinting;
+    float chaoticSpeed = 1.0f;
+    bool isPausing;
+    float pauseTimer;
 
     bool _wantsToAttack;
 
