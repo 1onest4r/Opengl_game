@@ -53,7 +53,7 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
     // AI "presses" the button -> Slug stretches
     myPlayer.isMoving = true;
 
-    float speedMultiplier = 0.4f;
+    float speedMultiplier = 0.8f;
     switch (personality)
     {
     case AIPersonality::STEADY:
