@@ -4,7 +4,7 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
       startPosition(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
-      speed(20.5f),
+      speed(10.5f),
       moveKey(moveK),
       attackKey(attackK),
       isAlive(true),
@@ -14,6 +14,7 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
         static_cast<float>(rand()) / RAND_MAX,
         static_cast<float>(rand()) / RAND_MAX,
         static_cast<float>(rand()) / RAND_MAX);
+    glGenVertexArrays(1, &VAO_id);
 }
 
 void Player::handleInput(GLFWwindow *window, float deltaTime)
@@ -22,14 +23,12 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
         return;
 
     bool movePressed = glfwGetKey(window, moveKey) == GLFW_PRESS;
+    isMoving = glfwGetKey(window, moveKey) == GLFW_PRESS;
 
-    if (movePressed && !moveKeyWasPressed && leapCooldown <= 0.0f)
+    if (movePressed)
     {
-        position += forwardDir * leapDistance;
-        leapCooldown = leapDelay;
+        position += forwardDir * speed * deltaTime;
     }
-
-    moveKeyWasPressed = movePressed;
 
     // attack
     bool attackPressed = glfwGetKey(window, attackKey) == GLFW_PRESS;
@@ -37,7 +36,6 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
     if (attackPressed && !hasUsedKill)
     {
         std::cout << "attack triggered" << std::endl;
-        // trigger actual kill from main
     }
 }
 
@@ -46,10 +44,21 @@ void Player::update(float deltaTime)
     if (leapCooldown > 0.0f)
         leapCooldown -= deltaTime;
 
+    // FIX: Use the 'isMoving' variable that is set by handleInput (for humans)
+    // or by the AIController (for bots).
+    // DO NOT check glfwGetKey here, as bots don't have keys!
+    float stretchTarget = isMoving ? 1.0f : 0.0f;
+
+    // Smooth out the animation
+    float lerpSpeed = isMoving ? 5.0f : 8.0f;
+    visualStretch += (stretchTarget - visualStretch) * lerpSpeed * deltaTime;
+
     if (!isAlive && !hasRespawned)
     {
-        respawnTimer -= deltaTime;
+        // If dead, ensure we curl up immediately
+        isMoving = false;
 
+        respawnTimer -= deltaTime;
         if (respawnTimer <= 0.0f)
         {
             position = startPosition;
@@ -71,7 +80,11 @@ void Player::draw(unsigned int shaderID)
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
+    glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
 
-    static Cube cube;
-    cube.draw();
+    glBindVertexArray(VAO_id);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glFlush();
+    // static Cube cube;
+    // cube.draw();
 }

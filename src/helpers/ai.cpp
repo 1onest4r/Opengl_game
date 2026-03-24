@@ -5,118 +5,83 @@ AIController::AIController()
     int p = rand() % 4;
     personality = static_cast<AIPersonality>(p);
 
-    tapTimer = 0.0f;
     stateTimer = 0.0f;
     isSprinting = false;
+    isPausing = false;
+    pauseTimer = 2.0f; // Start with a 2 second buffer before first pause check
+    pauseDuration = 0.0f;
     _wantsToAttack = false;
-
-    generateNewTapInterval();
 }
 
 void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
 {
     if (!myPlayer.isAlive)
-        return; // Dead players don't tap!
+    {
+        myPlayer.isMoving = false;
+        return;
+    }
 
-    tapTimer += deltaTime;
     stateTimer += deltaTime;
 
-    // // --- NEW: Introduce "Hesitation" ---
-    // // Every 0.5 seconds, there is a 30% chance the AI "gets distracted"
-    // // and pauses for a random amount of time.
-    // if (stateTimer > 0.5f && (rand() % 100 < 30))
-    // {
-    //     tapTimer -= (0.2f + ((rand() % 100) / 500.0f));
-    //     stateTimer = 0.0f;
-    // }
-
-    // --- Personality State Machine ---
-    switch (personality)
+    // --- PAUSING LOGIC ---
+    if (!isPausing)
     {
-    case AIPersonality::STEADY:
-        if (stateTimer > 2.0f)
+        pauseTimer -= deltaTime;
+        if (pauseTimer <= 0.0f)
         {
-            generateNewTapInterval();
-            stateTimer = 0.0f;
-        }
-        break;
-
-    case AIPersonality::SPRINTER:
-        if (isSprinting && stateTimer > 1.2f)
-        {
-            isSprinting = false;
-            stateTimer = 0.0f;
-            currentTapInterval = 0.6f; // Exhausted slow tap
-        }
-        else if (!isSprinting && stateTimer > 2.5f)
-        {
-            isSprinting = true;
-            stateTimer = 0.0f;
-            currentTapInterval = 0.1f; // Extremely fast burst tap (Mashing)
-        }
-        break;
-
-    case AIPersonality::CHAOTIC:
-        if (stateTimer > 0.6f)
-        {
-            generateNewTapInterval();
-            stateTimer = 0.0f;
-        }
-        break;
-
-    case AIPersonality::AGGRESSIVE:
-        if (stateTimer > 1.5f)
-        {
-            generateNewTapInterval();
-            stateTimer = 0.0f;
-        }
-
-        // Wait to use the one-time kill on the leader
-        if (!myPlayer.hasUsedKill && leader && leader != &myPlayer)
-        {
-            // If the leader is in front of them
-            if (leader->position.x > myPlayer.position.x + 1.0f)
-            {
-                // Small random chance per frame to simulate human reaction time
-                if (rand() % 1000 < 10)
-                {
-                    _wantsToAttack = true;
-                }
+            pauseTimer = 1.0f + (rand() % 400) / 100.0f;
+            if ((rand() % 10) < 3)
+            { // 30% chance to pause
+                isPausing = true;
+                pauseDuration = 0.4f + (rand() % 60) / 100.0f;
             }
         }
-        break;
     }
 
-    // --- Simulate the "Tapping" Movement ---
-    if (tapTimer >= currentTapInterval)
+    if (isPausing)
     {
+        pauseDuration -= deltaTime;
+        if (pauseDuration <= 0.0f)
+            isPausing = false;
 
-        // FAIRNESS CHECK: The AI can only move if the player cooldown is finished!
-        // If they "mash" too fast (Sprinter), the extra taps do nothing, just like a human.
-        if (myPlayer.leapCooldown <= 0.0f)
-        {
-            myPlayer.position += myPlayer.forwardDir * myPlayer.leapDistance;
-            myPlayer.leapCooldown = myPlayer.leapDelay;
-        }
-
-        tapTimer = 0.0f; // Reset AI finger tap timer
+        // AI releases the button -> Slug curls up
+        myPlayer.isMoving = false;
+        return;
     }
-}
 
-void AIController::generateNewTapInterval()
-{
+    // --- MOVEMENT LOGIC ---
+    // AI "presses" the button -> Slug stretches
+    myPlayer.isMoving = true;
+
+    float speedMultiplier = 0.8f;
     switch (personality)
     {
     case AIPersonality::STEADY:
-        currentTapInterval = 0.54f + ((rand() % 100) / 1000.0f);
+        speedMultiplier *= 0.9f;
         break;
     case AIPersonality::SPRINTER:
-        break; // Handled dynamically in the update loop
+        if (stateTimer > 1.5f)
+        {
+            isSprinting = !isSprinting;
+            stateTimer = 0.0f;
+        }
+        speedMultiplier *= isSprinting ? 1.6f : 0.2f;
+        // If sprinter is in the "slow" phase, let them curl up
+        if (!isSprinting)
+            myPlayer.isMoving = false;
+        break;
     case AIPersonality::CHAOTIC:
-        currentTapInterval = 0.36f + ((rand() % 100) / 300.0f);
+        if (stateTimer > 0.5f)
+        {
+            chaoticSpeed = 0.5f + (rand() % 60) / 100.0f;
+            stateTimer = 0.0f;
+        }
+        speedMultiplier *= chaoticSpeed;
         break;
     case AIPersonality::AGGRESSIVE:
-        currentTapInterval = 0.80f + ((rand() % 100) / 1000.0f);
+        speedMultiplier *= 1.1f;
         break;
     }
+
+    myPlayer.position += myPlayer.forwardDir * myPlayer.speed * speedMultiplier * deltaTime;
 }

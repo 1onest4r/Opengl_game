@@ -6,6 +6,7 @@
 #include "helpers/plane.h"
 #include "helpers/player.h"
 #include "helpers/ai.h"
+#include "helpers/background.h"
 
 Player *getLeader(std::vector<Player> &players)
 {
@@ -109,6 +110,14 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 460 core");
 
+    const GLubyte *renderer = glGetString(GL_RENDERER);
+    const GLubyte *vendor = glGetString(GL_VENDOR);
+    const GLubyte *version = glGetString(GL_VERSION);
+
+    std::cout << "GPU: " << renderer << std::endl;
+    std::cout << "Vendor: " << vendor << std::endl;
+    std::cout << "OpenGL Version: " << version << std::endl;
+
     // for z fighting reasons
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -131,6 +140,13 @@ int main()
         shaderDir + "plane.vert",
         shaderDir + "plane.frag");
 
+    Shader background_shader(
+        "background",
+        shaderDir + "background.vert",
+        shaderDir + "background.frag");
+
+    Background background(shaderDir);
+
     float deltaTime = 0.0f;
     float lastFrame = 0.0f;
 
@@ -152,9 +168,17 @@ int main()
     while (!glfwWindowShouldClose(window))
     {
 
+        static float lastFrame = 0.0f;
+        static float accumulator = 0.0f;
+        const float FIXED_DELTA = 1.0f / 60.0f; // 60Hz logic
+
         float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
+        float frameTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        if (frameTime > 0.25f)
+            frameTime = 0.25f; // Clamp to avoid spiral of death
+        accumulator += frameTime;
 
         glfwPollEvents();
 
@@ -162,6 +186,71 @@ int main()
         {
             std::cout << "[Shader] Manual reload triggered\n";
             player_rendering_shader.reload();
+        }
+
+        // --- FIXED PHYSICS/AI UPDATE (FAIRNESS LOOP) ---
+        while (accumulator >= FIXED_DELTA)
+        {
+            if (gameState == GameState::PLAYING)
+            {
+                Player *currentLeader = getLeader(players);
+
+                // Movement & AI logic
+                for (int i = 0; i < players.size(); i++)
+                {
+                    if (players[i].moveKey != -1)
+                        players[i].handleInput(window, FIXED_DELTA);
+                    else if (aiBrains.find(i) != aiBrains.end())
+                        aiBrains[i].update(FIXED_DELTA, players[i], currentLeader);
+                }
+
+                // Attack logic
+                for (int i = 0; i < players.size(); i++)
+                {
+                    auto &attacker = players[i];
+                    if (!attacker.isAlive || attacker.hasUsedKill)
+                        continue;
+
+                    bool wantsToAttack = false;
+                    if (attacker.attackKey != -1)
+                        wantsToAttack = (glfwGetKey(window, attacker.attackKey) == GLFW_PRESS);
+                    else if (aiBrains.find(i) != aiBrains.end())
+                    {
+                        wantsToAttack = aiBrains[i].wantsToAttack();
+                        if (wantsToAttack)
+                            aiBrains[i].consumeAttack();
+                    }
+
+                    if (wantsToAttack)
+                    {
+                        Player *leader = getLeader(players);
+                        if (leader)
+                        {
+                            leader->isAlive = false;
+                            leader->respawnTimer = 3.0f;
+                            leader->hasRespawned = false;
+                            attacker.hasUsedKill = true;
+                        }
+                    }
+                }
+
+                // Physics/Cooldown updates
+                for (auto &p : players)
+                    p.update(FIXED_DELTA);
+
+                // Win condition
+                for (int i = 0; i < players.size(); i++)
+                {
+                    if (players[i].isAlive && players[i].position.x >= finishLine)
+                    {
+                        winnerColor = players[i].color;
+                        winnerName = (i < selectedPlayerCount) ? "PLAYER " + std::to_string(i + 1) + " WINS!" : "AN AI PLAYER WON!";
+                        gameState = GameState::GAME_OVER;
+                        break;
+                    }
+                }
+            }
+            accumulator -= FIXED_DELTA;
         }
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -172,6 +261,8 @@ int main()
 
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        background.draw(currentFrame);
 
         if (gameState == GameState::PLAYING && plane)
         {

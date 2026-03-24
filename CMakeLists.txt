@@ -29,6 +29,7 @@ add_executable(Opengl_game
     src/helpers/plane.cpp
     src/helpers/cube.cpp
     src/helpers/ai.cpp
+    src/helpers/background.cpp
 
     # dependencies/glad/glad.h
     # dependencies/GLFW/libglfw3dll.a

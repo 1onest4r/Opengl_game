@@ -2,13 +2,6 @@
 
 first ever try on making game with Opengl and c++!
 
-===============MAIN TASKS==========
-implement
-
-=====OPTIONAL FEATURE IF USEFUL=====
-THEN implement UBO for camera matrices.
-
-eric tasks:
-Add multiple players.(make it dynamic)
-to make it dynamic i must first
-dynamically update (camera, plane, viewport size)
+when player wins display the key pairs rather than player number
+scale the platform so it fits the screen well (and manage the plane size aswell
+)
