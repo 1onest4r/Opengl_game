@@ -10,7 +10,7 @@ public:
     void update(float deltaTime);
     void handleInput(GLFWwindow *window, float deltaTime);
     void draw(unsigned int shaderID);
-
+    void draw_shadow(unsigned int shaderID);
     glm::vec3 getPosition() const { return position; }
     bool alive() const { return isAlive; }
     void kill() { isAlive = false; }

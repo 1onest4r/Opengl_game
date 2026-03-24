@@ -7,6 +7,65 @@
 #include "helpers/player.h"
 #include "helpers/ai.h"
 #include "helpers/background.h"
+#include "stb_image.h"
+
+
+#define RACE_LENGTH 50.0f
+
+GLuint LoadTexture(const char* path, bool gammaCorrection = false)
+{
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+
+    if (data)
+    {
+        GLenum internalFormat;
+        GLenum dataFormat;
+
+        if (nrChannels == 1)
+        {
+            internalFormat = dataFormat = GL_RED;
+        }
+        else if (nrChannels == 3)
+        {
+            internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
+            dataFormat = GL_RGB;
+        }
+        else if (nrChannels == 4)
+        {
+            internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
+            dataFormat = GL_RGBA;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
+            width, height, 0, dataFormat,
+            GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // wrapping
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        // filtering
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
+    }
+    else
+    {
+        std::cout << "Failed to load texture: " << path << std::endl;
+        stbi_image_free(data);
+    }
+
+    return textureID;
+}
+
 
 Player *getLeader(std::vector<Player> &players)
 {
@@ -57,7 +116,7 @@ std::vector<Keypair> predefinedPlayerKeys = {
 
 int main()
 {
-    float finishLine = 50.0f;
+    float finishLine = RACE_LENGTH -3.0f;
 
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
@@ -123,12 +182,32 @@ int main()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glfwSetCursorPosCallback(window, mouse_callback);
+
+    GLuint albedoMap = LoadTexture((std::string(ROOT_FOLDER)+"/img/albedo.png").c_str(), false);  
+    GLuint normalMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/normal.png").c_str(), false);
+    GLuint roughMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/roughness.png").c_str(), false);
+    GLuint aoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/ao.png").c_str(), false);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedoMap);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, normalMap);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, roughMap);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, aoMap);
+
+
 
     std::unique_ptr<Plane> plane;
     std::vector<Player> players;
 
-    Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
+    
 
     Shader player_rendering_shader(
         "player_rendering",
@@ -145,6 +224,11 @@ int main()
         shaderDir + "background.vert",
         shaderDir + "background.frag");
 
+    Shader shadow_shader(
+        "shadow",
+        shaderDir + "shadow.vert",
+        shaderDir + "shadow.frag");
+
     Background background(shaderDir);
 
     float deltaTime = 0.0f;
@@ -158,17 +242,22 @@ int main()
 
     float aspect = (float)w_width / (float)w_height;
 
+    float zoom = 20.0f;
     glm::mat4 proj = glm::ortho(
-        -30.0f * aspect, 30.0f * aspect,
-        -30.0f, 30.0f,
+        -zoom * aspect, zoom * aspect,
+        -zoom, zoom,
         1.0f,
         1000.0f);
+
+    Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
     glm::mat4 view = camera.getViewMatrix();
 
     while (!glfwWindowShouldClose(window))
     {
-
-        static float lastFrame = 0.0f;
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        static float lastFrame = glfwGetTime();
         static float accumulator = 0.0f;
         const float FIXED_DELTA = 1.0f / 60.0f; // 60Hz logic
 
@@ -253,9 +342,7 @@ int main()
             accumulator -= FIXED_DELTA;
         }
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+  
 
         processInput(window, deltaTime);
 
@@ -275,10 +362,7 @@ int main()
             plane->draw();
         }
 
-        player_rendering_shader.use();
-        glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
-        glUniform1f(glGetUniformLocation(player_rendering_shader.id(), "time"), currentFrame);
+
 
         if (gameState == GameState::PLAYING)
         {
@@ -361,11 +445,32 @@ int main()
                 }
             }
 
+
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_BLEND);
+            shadow_shader.use();
+            glUniformMatrix4fv(glGetUniformLocation(shadow_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(shadow_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+            glUniform1f(glGetUniformLocation(shadow_shader.id(), "time"), currentFrame);
+            // Draw players
+            for (auto& p : players)
+            {
+                p.draw_shadow(shadow_shader.id());
+            }
+
+            glEnable(GL_DEPTH_TEST);
+            glDisable(GL_BLEND);
+            player_rendering_shader.use();
+            glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+            glUniform1f(glGetUniformLocation(player_rendering_shader.id(), "time"), currentFrame);
             // Draw players
             for (auto &p : players)
             {
                 p.draw(player_rendering_shader.id());
             }
+
+
         }
 
         if (gameState == GameState::MENU)
@@ -443,17 +548,18 @@ int main()
 
                 float spacingDist = 3.0f;
                 float planeWidth = totalCount * spacingDist;
-                float planeLength = 50.0f;
+                float planeLength = RACE_LENGTH;
 
                 plane = std::make_unique<Plane>(planeLength, planeWidth);
                 glm::vec3 planeCenter(planeLength * 0.5f, 0.0f, planeWidth * 0.5f);
                 camera = Camera(glm::vec3(-30.0f, 30.0f, planeCenter.z * 3.0f));
+                camera = Camera(glm::vec3(planeCenter.x + RACE_LENGTH*0.2, 20.0f, planeCenter.z + RACE_LENGTH * 0.6));
                 camera.setTarget(planeCenter);
                 view = camera.getViewMatrix();
 
                 std::vector<float> lanePositions;
                 for (int i = 0; i < totalCount; i++)
-                    lanePositions.push_back(i * spacingDist);
+                    lanePositions.push_back((i+0.5f) * spacingDist);
                 std::shuffle(lanePositions.begin(), lanePositions.end(), std::default_random_engine(rand()));
 
                 for (int i = 0; i < totalCount; i++)

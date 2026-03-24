@@ -11,7 +11,7 @@ uniform mat4 proj;
 uniform float uStretch;
 
 in vec4 pos;//world
-
+in vec3 light_pos;
 
 float smin( float a, float b, float k )
 {
@@ -31,7 +31,7 @@ float blob(vec3 p, vec3 center)
     
     // Sphere 1: The "Head"
     // We move the head slightly forward as we stretch
-    vec3 headPos = center + vec3(uStretch * 0.5, 0.0, 0.0);
+    vec3 headPos = center + vec3(0.0, 0.0, 0.0);
     float sdf = sphere(p, headPos, radius);
 
     // Sphere 2: The "Tail"
@@ -65,7 +65,6 @@ vec3 GetNormals(vec3 pos,vec3 center)
  
 }
 
-vec3 light_pos = vec3(-5.0,25.0,5.0);//WF
 
 
 void main() {
@@ -89,6 +88,8 @@ void main() {
     }
 
     vec3 col;
+   // screenColor = vec4(0.5,1.0,0.0, 1.0);
+   // return;
 
     if (td > 10.0)
         discard;
@@ -104,7 +105,7 @@ void main() {
     vec3 c = normalize(cam_pos-p);
     vec3 r = reflect(-l,n);//reflection of light vector
 
-    float ambiant = 0.1;
+    float ambiant = 0.2;
     float diffuse = 0.4;
     float specular = 1.0;
     float specular_alpha = 5.0;

@@ -4,7 +4,7 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
     : position(startPos),
       startPosition(startPos),
       forwardDir(1.0f, 0.0f, 0.0f),
-      speed(10.5f),
+      speed(2.5f),
       moveKey(moveK),
       attackKey(attackK),
       isAlive(true),
@@ -80,6 +80,25 @@ void Player::draw(unsigned int shaderID)
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
+    glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
+
+    glBindVertexArray(VAO_id);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glFlush();
+    // static Cube cube;
+    // cube.draw();
+}
+
+void Player::draw_shadow(unsigned int shaderID)
+{
+    if (!isAlive)
+        return;
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::scale(model, glm::vec3(size));
+
+    glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
 
     glBindVertexArray(VAO_id);

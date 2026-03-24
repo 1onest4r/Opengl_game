@@ -6,15 +6,15 @@ uniform mat4 view;
 uniform mat4 proj;
 
 out vec4 pos;//world
-out vec3 light_pos;
+out vec3 pos_player;
 void main() {
-    mat4 m = inverse(view);
-    light_pos = m[3].xyz;
 
-    float k = 4.5;
-    vec3 left = k*transpose(view)[0].xyz;
-    vec3 down = k*transpose(view)[1].xyz;
-    vec3 shift = model[3].xyz;
+    float k = 4.0;
+    vec3 left = k*vec3(1.0,0.0,0.0);
+    vec3 down = k*vec3(0.0,0.0,1.0);
+    vec3 shift = model[3].xyz+vec3(-0.5,0.0,1.0);
+    pos_player = shift;
+
     pos.w=1.0;
     if (gl_VertexID == 0)
     {
