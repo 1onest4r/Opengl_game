@@ -9,17 +9,45 @@
 #include "helpers/background.h"
 #include "stb_image.h"
 
-
 #define RACE_LENGTH 50.0f
 
-GLuint LoadTexture(const char* path, bool gammaCorrection = false)
+std::string keyToString(int key)
+{
+    const char *name = glfwGetKeyName(key, 0);
+    if (name)
+        return std::string(name);
+
+    switch (key)
+    {
+    case GLFW_KEY_COMMA:
+        return ",";
+    case GLFW_KEY_PERIOD:
+        return ".";
+    case GLFW_KEY_SLASH:
+        return "/";
+    case GLFW_KEY_SEMICOLON:
+        return ";";
+    default:
+        return "?";
+    }
+}
+
+std::string getPlayerLabel(const Player &p)
+{
+    if (p.moveKey == -1)
+        return "AI PLAYER";
+
+    return "(" + keyToString(p.moveKey) + " and " + keyToString(p.attackKey) + ")";
+}
+
+GLuint LoadTexture(const char *path, bool gammaCorrection = false)
 {
     GLuint textureID;
     glGenTextures(1, &textureID);
 
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(path, &width, &height, &nrChannels, 0);
+    unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
 
     if (data)
     {
@@ -43,8 +71,8 @@ GLuint LoadTexture(const char* path, bool gammaCorrection = false)
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat,
-            width, height, 0, dataFormat,
-            GL_UNSIGNED_BYTE, data);
+                     width, height, 0, dataFormat,
+                     GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         // wrapping
@@ -65,7 +93,6 @@ GLuint LoadTexture(const char* path, bool gammaCorrection = false)
 
     return textureID;
 }
-
 
 Player *getLeader(std::vector<Player> &players)
 {
@@ -116,7 +143,7 @@ std::vector<Keypair> predefinedPlayerKeys = {
 
 int main()
 {
-    float finishLine = RACE_LENGTH -3.0f;
+    float finishLine = RACE_LENGTH - 3.0f;
 
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
@@ -185,7 +212,7 @@ int main()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glfwSetCursorPosCallback(window, mouse_callback);
 
-    GLuint albedoMap = LoadTexture((std::string(ROOT_FOLDER)+"/img/albedo.png").c_str(), false);  
+    GLuint albedoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/albedo.png").c_str(), false);
     GLuint normalMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/normal.png").c_str(), false);
     GLuint roughMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/roughness.png").c_str(), false);
     GLuint aoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/ao.png").c_str(), false);
@@ -202,12 +229,8 @@ int main()
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, aoMap);
 
-
-
     std::unique_ptr<Plane> plane;
     std::vector<Player> players;
-
-    
 
     Shader player_rendering_shader(
         "player_rendering",
@@ -333,7 +356,7 @@ int main()
                     if (players[i].isAlive && players[i].position.x >= finishLine)
                     {
                         winnerColor = players[i].color;
-                        winnerName = (i < selectedPlayerCount) ? "PLAYER " + std::to_string(i + 1) + " WINS!" : "AN AI PLAYER WON!";
+                        winnerName = (i < selectedPlayerCount) ? "PLAYER with " + getPlayerLabel(players[i]) + " key WINS!" : "AN AI PLAYER WON!";
                         gameState = GameState::GAME_OVER;
                         break;
                     }
@@ -341,8 +364,6 @@ int main()
             }
             accumulator -= FIXED_DELTA;
         }
-
-  
 
         processInput(window, deltaTime);
 
@@ -361,8 +382,6 @@ int main()
 
             plane->draw();
         }
-
-
 
         if (gameState == GameState::PLAYING)
         {
@@ -436,7 +455,7 @@ int main()
                 {
                     winnerColor = players[i].color;
                     if (i < selectedPlayerCount)
-                        winnerName = "PLAYER " + std::to_string(i + 1) + " WINS!";
+                        winnerName = getPlayerLabel(players[i]) + " WINS!";
                     else
                         winnerName = "AN AI PLAYER WON!";
 
@@ -445,7 +464,6 @@ int main()
                 }
             }
 
-
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
             shadow_shader.use();
@@ -453,7 +471,7 @@ int main()
             glUniformMatrix4fv(glGetUniformLocation(shadow_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
             glUniform1f(glGetUniformLocation(shadow_shader.id(), "time"), currentFrame);
             // Draw players
-            for (auto& p : players)
+            for (auto &p : players)
             {
                 p.draw_shadow(shadow_shader.id());
             }
@@ -469,8 +487,6 @@ int main()
             {
                 p.draw(player_rendering_shader.id());
             }
-
-
         }
 
         if (gameState == GameState::MENU)
@@ -553,13 +569,13 @@ int main()
                 plane = std::make_unique<Plane>(planeLength, planeWidth);
                 glm::vec3 planeCenter(planeLength * 0.5f, 0.0f, planeWidth * 0.5f);
                 camera = Camera(glm::vec3(-30.0f, 30.0f, planeCenter.z * 3.0f));
-                camera = Camera(glm::vec3(planeCenter.x + RACE_LENGTH*0.2, 20.0f, planeCenter.z + RACE_LENGTH * 0.6));
+                camera = Camera(glm::vec3(planeCenter.x + RACE_LENGTH * 0.2, 20.0f, planeCenter.z + RACE_LENGTH * 0.6));
                 camera.setTarget(planeCenter);
                 view = camera.getViewMatrix();
 
                 std::vector<float> lanePositions;
                 for (int i = 0; i < totalCount; i++)
-                    lanePositions.push_back((i+0.5f) * spacingDist);
+                    lanePositions.push_back((i + 0.5f) * spacingDist);
                 std::shuffle(lanePositions.begin(), lanePositions.end(), std::default_random_engine(rand()));
 
                 for (int i = 0; i < totalCount; i++)
