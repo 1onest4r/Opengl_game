@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.12.0)
 project(Opengl_game VERSION 1.0.0)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    glfw
+    GIT_REPOSITORY https://github.com/glfw/glfw.git
+    GIT_TAG 3.3.8
+)
+
+FetchContent_MakeAvailable(glfw)
+
 find_package(OpenGL REQUIRED)
 #find_package(glfw3 3.4 REQUIRED)
 
@@ -47,4 +60,4 @@ target_link_directories(Opengl_game PRIVATE
 
 target_compile_definitions(Opengl_game PRIVATE ROOT_FOLDER="${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(Opengl_game glfw)
+target_link_libraries(Opengl_game glfw opengl32)
