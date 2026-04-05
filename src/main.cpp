@@ -123,7 +123,8 @@ enum class GameState
     PLAYING,
     GAME_OVER,
     TOURNAMENT_STANDINGS,
-    TOURNAMENT_END
+    TOURNAMENT_END,
+    GUIDE
 };
 
 struct Keypair
@@ -241,6 +242,13 @@ int main()
     GLuint normalMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/normal.png").c_str(), false);
     GLuint roughMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/roughness.png").c_str(), false);
     GLuint aoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/ao.png").c_str(), false);
+    GLuint guideTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/player_guide.png").c_str(), false);
+
+    int guideWidth, guideHeight;
+    glBindTexture(GL_TEXTURE_2D, guideTexture);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &guideWidth);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &guideHeight);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, albedoMap);
@@ -250,6 +258,8 @@ int main()
     glBindTexture(GL_TEXTURE_2D, roughMap);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, aoMap);
+
+   
 
     std::unique_ptr<Plane> plane;
     std::vector<Player> players;
@@ -768,6 +778,14 @@ int main()
 
             ImGui::Dummy(ImVec2(0.0f, 15.0f * uiScale));
 
+            ImGui::SetCursorPosX((windowSize.x - buttonWidth) * 0.5f);
+            if (ImGui::Button("How to play", ImVec2(buttonWidth, buttonHeight)))
+            {
+                gameState = GameState::GUIDE;
+            }
+
+            ImGui::Dummy(ImVec2(0.0f, 15.0f * uiScale));
+
             // --- 5. Quit Button ---
             ImGui::SetCursorPosX((windowSize.x - buttonWidth) * 0.5f);
             if (ImGui::Button("Quit", ImVec2(buttonWidth, buttonHeight)))
@@ -777,6 +795,64 @@ int main()
 
             ImGui::SetWindowFontScale(1.0f); // Reset scale
             ImGui::End();
+        }
+
+        if (gameState == GameState::GUIDE)
+        {
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+                ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+                ImGuiWindowFlags_NoScrollbar;
+
+            ImGuiViewport* viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->WorkPos);
+            ImGui::SetNextWindowSize(viewport->WorkSize);
+
+            // Push a black background style for this window specifically
+            ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
+            ImGui::Begin("Guide Screen", nullptr, window_flags);
+
+            ImVec2 windowSize = ImGui::GetWindowSize();
+            float uiScale = std::max(1.0f, windowSize.y / 540.0f);
+
+            // --- 1. SCALE IMAGE TO FILL SCREEN ---
+            // Calculate scale to fit the image perfectly to the window
+            float scale = std::min(windowSize.x / (float)guideWidth, windowSize.y / (float)guideHeight);
+            float displayWidth = (float)guideWidth * scale;
+            float displayHeight = (float)guideHeight * scale;
+
+            // Center the image in the remaining space
+            float imagePosX = (windowSize.x - displayWidth) * 0.5f;
+            float imagePosY = (windowSize.y - displayHeight) * 0.5f;
+
+            ImGui::SetCursorPos(ImVec2(imagePosX, imagePosY));
+
+            // Draw image (with the UV flip fix for OpenGL)
+            ImGui::Image((void*)(intptr_t)guideTexture,
+                ImVec2(displayWidth, displayHeight),
+                ImVec2(0, 1),
+                ImVec2(1, 0));
+
+            // --- 2. FLOATING BACK BUTTON ---
+            // We move the button to the top-left corner so it's out of the way
+            ImGui::SetCursorPos(ImVec2(20.0f * uiScale, 20.0f * uiScale));
+
+            // Set text size for the button
+            ImGui::SetWindowFontScale(uiScale * 0.8f); // Slightly smaller than menu buttons but readable
+
+            float btnWidth = 180.0f * uiScale;
+            float btnHeight = 40.0f * uiScale;
+
+            // Make the button slightly transparent or distinct so it looks like an overlay
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 0.7f));
+            if (ImGui::Button("< Back to Menu", ImVec2(btnWidth, btnHeight)))
+            {
+                gameState = GameState::MENU;
+            }
+            ImGui::PopStyleColor();
+
+            ImGui::SetWindowFontScale(1.0f); // Reset scale
+            ImGui::End();
+            ImGui::PopStyleColor(); // Pop WindowBg
         }
 
         if (gameState == GameState::TOURNAMENT_STANDINGS)
