@@ -10,6 +10,9 @@ in vec3 pos_player;
 
 
 void main() {
+    //not sure why the values are not 0.0, but that matches the edges...
+    if (pos.x<-0.5 || pos.z<1.5)
+        discard;
 
     float d = 0.4*length((pos.xyz-pos_player)*vec3(1.0-0.2*uStretch,1.0,1.0));
 
