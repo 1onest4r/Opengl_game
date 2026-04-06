@@ -2,6 +2,7 @@
 
 Plane::Plane(float width, float length)
 {
+    m_dim = glm::vec2(length, width);
     std::vector<float> positions = {
         0.0f, 0.0f, 0.0f,
         width, 0.0f, length,
@@ -47,6 +48,8 @@ void Plane::draw()
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     glFlush();
 }
+
+
 
 Plane::~Plane()
 {

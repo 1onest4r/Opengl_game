@@ -9,10 +9,11 @@ out vec3 worldPos;
 out vec2 uv;
 out vec3 light_pos;
 void main() {
+    vec3 v = vertPos ;//- vec3(1.0,0.0,0.0);
     mat4 m = inverse(view);
     light_pos = m[3].xyz;
-    worldPos = vertPos;
-    uv = vertPos.xz/20.0;
-    gl_Position = proj * view * vec4(vertPos - vec3(1.0,0.0,0.0), 1.0);
+    worldPos = v - vec3(1.0,0.0,0.0);
+    uv = v.xz/20.0;
+    gl_Position = proj * view * vec4(v - vec3(1.0,0.0,0.0), 1.0);
     
 }

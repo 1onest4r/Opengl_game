@@ -268,6 +268,8 @@ int main()
     Shader plane_rendering_shader("plane_rendering", shaderDir + "plane.vert", shaderDir + "plane.frag");
     Shader background_shader("background", shaderDir + "background.vert", shaderDir + "background.frag");
     Shader shadow_shader("shadow", shaderDir + "shadow.vert", shaderDir + "shadow.frag");
+	Shader wall_shader("wall", shaderDir + "wall.vert", shaderDir + "wall.frag");
+
 
     Background background(shaderDir);
 
@@ -554,8 +556,17 @@ int main()
             glUniformMatrix4fv(glGetUniformLocation(plane_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
             glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "time"), currentFrame);
             glUniform1f(glGetUniformLocation(plane_rendering_shader.id(), "finishLine"), finishLine);
-
             plane->draw();
+
+            wall_shader.use();
+            glUniformMatrix4fv(glGetUniformLocation(wall_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(wall_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+            glUniform2f(glGetUniformLocation(wall_shader.id(), "dim"), plane->m_dim.y, plane->m_dim.x);
+
+            glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, 2);
+			
+
+
         }
 
         if (gameState == GameState::PLAYING)

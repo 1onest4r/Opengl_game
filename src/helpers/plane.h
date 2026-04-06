@@ -8,7 +8,7 @@ public:
     ~Plane();
 
     void draw();
-
+    glm::vec2 m_dim;
 private:
     unsigned int VAO;
     std::vector<unsigned int> VBO;
