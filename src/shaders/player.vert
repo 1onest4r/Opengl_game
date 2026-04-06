@@ -11,7 +11,7 @@ void main() {
     mat4 m = inverse(view);
     light_pos = m[3].xyz;
 
-    float k = 4.5;
+    float k = 2.5;
     vec3 left = k*transpose(view)[0].xyz;
     vec3 down = k*transpose(view)[1].xyz;
     vec3 shift = model[3].xyz;

@@ -11,19 +11,9 @@ void main() {
 
     vec3 color = texture(albedoMap, uv).rgb * texture(aoMap, uv).r * 2.5;
 
-     float coef = mix(0.4,0.0,wall_ratio*2.0);
+    float coef = mix(0.4,0.0,wall_ratio*2.0);
 
     vec3 shaded = color*coef;
-
-   
-
-    //shaded += coef*max(0.0,dot(n,l))*diffuse*color;
-
-    //shaded += coef* specular * pow(max(0.0,dot(c,r)),specular_alpha);
-
-
-   //vec3 normal = texture(albedoMap, uv).rgb;
-
 
     screenColor = vec4(shaded, 1.0);
 }

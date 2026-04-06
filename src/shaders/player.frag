@@ -1,6 +1,7 @@
 #version 450 core
 
-#define EPS 0.0001
+#define RAY_MARCHING_STEPS 100
+#define EPS 0.005
 
 out vec4 screenColor;
 uniform vec3 objectColor;
@@ -57,7 +58,7 @@ vec3 GetNormals(vec3 pos,vec3 center)
 {
 
     // do NOT call map() many times inside calcNormal()
-    vec2 e = vec2(1.0,-1.0)*0.5773*0.0005;
+    vec2 e = vec2(1.0,-1.0)*0.001;
     return normalize( e.xyy*blob( pos + e.xyy,center ) + 
 					  e.yyx*blob( pos + e.yyx,center ) + 
 					  e.yxy*blob( pos + e.yxy,center ) + 
@@ -77,7 +78,7 @@ void main() {
 
     float d;
     float td = 0.0;
-    for (int i=0;i<40;i++)
+    for (int i=0;i<RAY_MARCHING_STEPS;i++)
     {
         d = blob(p,center);
         p = p + d*rd;
@@ -88,10 +89,10 @@ void main() {
     }
 
     vec3 col;
-   // screenColor = vec4(0.5,1.0,0.0, 1.0);
-   // return;
+    //screenColor = vec4(0.5,1.0,0.0, 1.0);
+    //return;
 
-    if (td > 10.0)
+    if (td > 20.0)
         discard;
 
 
@@ -109,9 +110,9 @@ void main() {
     float diffuse = 0.4;
     float specular = 1.0;
     float specular_alpha = 5.0;
-    col = ambiant*objectColor;
+    col = ambiant * objectColor;
 
-    col += max(0.0,dot(n,l))*diffuse*objectColor;
+    col += max(0.0,dot(n,l)) * diffuse * objectColor;
 
     col += objectColor * specular * pow(max(0.0,dot(c,r)),specular_alpha);
 
