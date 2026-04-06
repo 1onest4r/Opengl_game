@@ -2,6 +2,8 @@
 #include "config.h"
 #include "cube.h"
 
+#define KILL_ANIM_TIME 0.3f
+#define RESPAWN_COOLDOWN 3.0f
 class Player
 {
 public:

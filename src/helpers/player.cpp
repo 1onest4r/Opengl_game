@@ -71,8 +71,8 @@ void Player::update(float deltaTime)
 
 void Player::draw(unsigned int shaderID)
 {
-    if (!isAlive)
-        return;
+    //if (!isAlive)
+    //    return;
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);
@@ -81,6 +81,7 @@ void Player::draw(unsigned int shaderID)
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
+    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN-respawnTimer) / KILL_ANIM_TIME, 0.0f, 0.9f));
 
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -91,8 +92,8 @@ void Player::draw(unsigned int shaderID)
 
 void Player::draw_shadow(unsigned int shaderID)
 {
-    if (!isAlive)
-        return;
+    //if (!isAlive)
+    //    return;
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);
@@ -100,7 +101,7 @@ void Player::draw_shadow(unsigned int shaderID)
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
-
+    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp( (RESPAWN_COOLDOWN - respawnTimer) / KILL_ANIM_TIME, 0.0f, 0.9f));
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glFlush();

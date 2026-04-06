@@ -10,6 +10,7 @@ uniform float time;
 uniform mat4 model;
 uniform mat4 proj;
 uniform float uStretch;
+uniform float kill;
 
 in vec4 pos;//world
 in vec3 light_pos;
@@ -23,7 +24,9 @@ float smin( float a, float b, float k )
 
 float sphere(vec3 p,vec3 c,float r)
 {
-    return distance(p,c)-r;
+    float g_scale = (0.2+kill)/1.2;
+    vec3 q = vec3(p.x, p.y / kill, p.z);
+    return (distance(q,c - vec3(0.0,r*(1.0-kill)*0.5,0.0))-r)*g_scale;
 }
 
 float blob(vec3 p, vec3 center)
@@ -98,7 +101,7 @@ void main() {
     for (int i=0;i<RAY_MARCHING_STEPS;i++)
     {
         d = blob(p,center);
-        p = p + d*rd;
+        p = p + d*rd*0.7;
         td += d;
         if (d<EPS)
             break;

@@ -4,7 +4,6 @@ uniform float time;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
-
 out vec4 pos;//world
 out vec3 pos_player;
 void main() {

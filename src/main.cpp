@@ -515,7 +515,7 @@ int main()
                         if (leader)
                         {
                             leader->isAlive = false;
-                            leader->respawnTimer = 3.0f;
+                            leader->respawnTimer = RESPAWN_COOLDOWN;
                             leader->hasRespawned = false;
                             attacker.hasUsedKill = true;
                         }
@@ -633,7 +633,7 @@ int main()
                     if (leader && leader != &attacker)
                     {
                         leader->isAlive = false;
-                        leader->respawnTimer = 3.0f;
+                        leader->respawnTimer = RESPAWN_COOLDOWN;
                         leader->hasRespawned = false;
                         attacker.hasUsedKill = true;
                         std::cout << "Leader killed!\n";
