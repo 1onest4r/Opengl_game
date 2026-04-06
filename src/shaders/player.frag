@@ -54,15 +54,32 @@ float blob(vec3 p, vec3 center)
 }
 
 
+vec3 bump_3d(vec3 p)
+{
+    // put scale to 0.0 to disable bump effect
+    float scale = 0.006;
+    float freq = 25.0;
+    return cos(p*freq)*scale;
+}
+
+
+float blob_n(vec3 p, vec3 center)
+{
+    return blob(p, center) + bump_3d(p-pos.xxx);
+}
+
+
+
+
 vec3 GetNormals(vec3 pos,vec3 center)
 {
 
     // do NOT call map() many times inside calcNormal()
     vec2 e = vec2(1.0,-1.0)*0.001;
-    return normalize( e.xyy*blob( pos + e.xyy,center ) + 
-					  e.yyx*blob( pos + e.yyx,center ) + 
-					  e.yxy*blob( pos + e.yxy,center ) + 
-					  e.xxx*blob( pos + e.xxx,center ) );
+    return normalize( e.xyy*blob_n( pos + e.xyy,center ) + 
+					  e.yyx*blob_n( pos + e.yyx,center ) + 
+					  e.yxy*blob_n( pos + e.yxy,center ) + 
+					  e.xxx*blob_n( pos + e.xxx,center ) );
  
 }
 
