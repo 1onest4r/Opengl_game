@@ -243,6 +243,7 @@ int main()
     GLuint roughMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/roughness.png").c_str(), false);
     GLuint aoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/ao.png").c_str(), false);
     GLuint guideTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/player_guide.png").c_str(), false);
+    GLuint noiseTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/noise.png").c_str(), false);
 
     int guideWidth, guideHeight;
     glBindTexture(GL_TEXTURE_2D, guideTexture);
@@ -258,8 +259,18 @@ int main()
     glBindTexture(GL_TEXTURE_2D, roughMap);
     glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, aoMap);
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
 
    
+    //Sets opengl flags for rendering
+    glPatchParameteri(GL_PATCH_VERTICES, 1);
+    float tess_level = 20.f;
+    float outer[4] = { tess_level,tess_level,tess_level,tess_level };
+    float inner[2] = { tess_level ,tess_level };
+
+    glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL, outer);
+    glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL, inner);
 
     std::unique_ptr<Plane> plane;
     std::vector<Player> players;
@@ -269,7 +280,7 @@ int main()
     Shader background_shader("background", shaderDir + "background.vert", shaderDir + "background.frag");
     Shader shadow_shader("shadow", shaderDir + "shadow.vert", shaderDir + "shadow.frag");
 	Shader wall_shader("wall", shaderDir + "wall.vert", shaderDir + "wall.frag");
-
+    Shader tiles_shader("tiles_background", shaderDir + "tiles.vert", shaderDir + "tiles.frag", shaderDir + "tiles.geom", "", shaderDir + "tiles.tese");
 
     Background background(shaderDir);
 
@@ -437,11 +448,11 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        static float lastFrame = glfwGetTime();
+        static float lastFrame = (float)glfwGetTime();
         static float accumulator = 0.0f;
         const float FIXED_DELTA = 1.0f / 60.0f; // 60Hz logic
 
-        float currentFrame = glfwGetTime();
+        float currentFrame = (float)glfwGetTime();
         float frameTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -548,6 +559,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         background.draw(currentFrame);
+
+        tiles_shader.use();
+        glUniformMatrix4fv(glGetUniformLocation(tiles_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(tiles_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+        glUniform1f(glGetUniformLocation(tiles_shader.id(), "time"), currentFrame);
+        glDrawArrays(GL_PATCHES, 0, 16);
 
         if (gameState == GameState::PLAYING && plane)
         {

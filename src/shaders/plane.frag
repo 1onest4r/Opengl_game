@@ -14,7 +14,7 @@ uniform mat4 view;
 
 in vec3 worldPos;
 in vec2 uv;
-in vec3 light_pos;
+in vec3 cam_pos;
 void main() {
     // Default plane color (blue)
     vec3 color = vec3(1.0);
@@ -56,7 +56,7 @@ void main() {
 
     vec3 n =  normalize(texture(normalMap, uv).xzy * 2.0 -1.0);
     vec3 l = normalize(l_pos-worldPos);
-    vec3 cam_pos = (inverse(view) * vec4(0,0,0,1)).xyz;
+    
     vec3 c = normalize(cam_pos-worldPos);
     vec3 r = reflect(-l,n);//reflection of light vector
 
