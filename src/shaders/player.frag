@@ -11,7 +11,7 @@ uniform mat4 model;
 uniform mat4 proj;
 uniform float uStretch;
 uniform float kill;
-
+uniform float spawn;
 in vec4 pos;//world
 in vec3 light_pos;
 
@@ -24,9 +24,10 @@ float smin( float a, float b, float k )
 
 float sphere(vec3 p,vec3 c,float r)
 {
-    float g_scale = (0.2+kill)/1.2;
-    vec3 q = vec3(p.x, p.y / kill, p.z);
-    return (distance(q,c - vec3(0.0,r*(1.0-kill)*0.5,0.0))-r)*g_scale;
+    float k = clamp(6.0*(kill-1.0)+1.0,0.1,1.0);
+    float g_scale = (0.2+k)/1.2;
+    vec3 q = vec3(p.x, p.y / k, p.z);
+    return (distance(q,c - vec3(0.0,spawn*r*(1.0-k)*0.5,0.0))-spawn*r)*g_scale;
 }
 
 float blob(vec3 p, vec3 center)
@@ -137,9 +138,9 @@ void main() {
     col += objectColor * specular * pow(max(0.0,dot(c,r)),specular_alpha);
 
 
-
+    float fade_alpha = clamp(kill*1.33,0.0,1.0);
 
     //if you wish to use the player random color use playerColor
     //objectColor for separate coloring before drawing the shapes
-    screenColor = vec4(col, 1.0);
+    screenColor = vec4(col, fade_alpha);
 }

@@ -688,7 +688,7 @@ int main()
             }
 
             glEnable(GL_DEPTH_TEST);
-            glDisable(GL_BLEND);
+            
             player_rendering_shader.use();
             glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
@@ -698,6 +698,8 @@ int main()
             {
                 p.draw(player_rendering_shader.id());
             }
+
+            glDisable(GL_BLEND);
         }
 
         if (gameState == GameState::MENU)

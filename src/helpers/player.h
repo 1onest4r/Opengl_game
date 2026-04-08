@@ -27,7 +27,7 @@ public:
     int moveKey;
     int attackKey;
     float respawnTimer = 0.0f;
-
+	float lastRespawnTime = 0.0f;
     float leapDistance = 3.0f;
     float leapCooldown = 0.0f;
     float leapDelay = 0.25f;

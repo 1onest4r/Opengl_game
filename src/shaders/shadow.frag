@@ -6,7 +6,7 @@ out vec4 screenColor;
 uniform float time;
 uniform float uStretch;
 uniform float kill;
-
+uniform float spawn;
 in vec4 pos;//world
 in vec3 pos_player;
 
@@ -20,8 +20,8 @@ void main() {
 
     d = clamp(d,0.0,1.0);
     d = d*d;
-
+    float k = clamp(6.0*(kill-1.0)+1.0,0.0,1.0);
     //if you wish to use the player random color use playerColor
     //objectColor for separate coloring before drawing the shapes
-    screenColor = vec4(0.0,0.0,0.0,kill*(1.0-d));
+    screenColor = vec4(0.0,0.0,0.0,spawn*k*(1.0-d));
 }

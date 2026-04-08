@@ -41,6 +41,7 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
 
 void Player::update(float deltaTime)
 {
+	lastRespawnTime += deltaTime;
     if (leapCooldown > 0.0f)
         leapCooldown -= deltaTime;
 
@@ -61,6 +62,7 @@ void Player::update(float deltaTime)
         respawnTimer -= deltaTime;
         if (respawnTimer <= 0.0f)
         {
+            lastRespawnTime = 0.0f;
             position = startPosition;
             isAlive = true;
             hasRespawned = true;
@@ -81,8 +83,8 @@ void Player::draw(unsigned int shaderID)
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
-    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN-respawnTimer) / KILL_ANIM_TIME, 0.0f, 0.9f));
-
+    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN-respawnTimer) / RESPAWN_COOLDOWN, 0.0f, 1.0f));
+    glUniform1f(glGetUniformLocation(shaderID, "spawn"), glm::clamp(lastRespawnTime*2.0f, 0.0f, 1.0f));
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glFlush();
@@ -101,7 +103,8 @@ void Player::draw_shadow(unsigned int shaderID)
 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, GL_FALSE, &model[0][0]);
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
-    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp( (RESPAWN_COOLDOWN - respawnTimer) / KILL_ANIM_TIME, 0.0f, 0.9f));
+    glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN - respawnTimer) / RESPAWN_COOLDOWN, 0.0f, 1.0f));
+    glUniform1f(glGetUniformLocation(shaderID, "spawn"), glm::clamp(lastRespawnTime * 2.0f, 0.0f, 1.0f));
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glFlush();
