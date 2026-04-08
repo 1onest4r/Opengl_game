@@ -13,6 +13,7 @@ public:
     void handleInput(GLFWwindow *window, float deltaTime);
     void draw(unsigned int shaderID);
     void draw_shadow(unsigned int shaderID);
+    void draw_slime(unsigned int shaderID);
     glm::vec3 getPosition() const { return position; }
     bool alive() const { return isAlive; }
     void kill() { isAlive = false; }
@@ -26,6 +27,7 @@ public:
 
     int moveKey;
     int attackKey;
+    glm::vec3 max_pos;
     float respawnTimer = 0.0f;
 	float lastRespawnTime = 0.0f;
     float leapDistance = 3.0f;

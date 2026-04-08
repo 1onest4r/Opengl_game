@@ -10,6 +10,8 @@ Player::Player(glm::vec3 startPos, int moveK, int attackK, float size)
       isAlive(true),
       size(size)
 {
+    max_pos = startPos;
+
     color = glm::vec3(
         static_cast<float>(rand()) / RAND_MAX,
         static_cast<float>(rand()) / RAND_MAX,
@@ -28,6 +30,7 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
     if (movePressed)
     {
         position += forwardDir * speed * deltaTime;
+
     }
 
     // attack
@@ -41,6 +44,9 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
 
 void Player::update(float deltaTime)
 {
+    if (glm::dot(position - startPosition, forwardDir) > glm::dot(max_pos - startPosition, forwardDir))
+        max_pos = position;
+
 	lastRespawnTime += deltaTime;
     if (leapCooldown > 0.0f)
         leapCooldown -= deltaTime;
@@ -105,6 +111,23 @@ void Player::draw_shadow(unsigned int shaderID)
     glUniform1f(glGetUniformLocation(shaderID, "uStretch"), visualStretch);
     glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN - respawnTimer) / RESPAWN_COOLDOWN, 0.0f, 1.0f));
     glUniform1f(glGetUniformLocation(shaderID, "spawn"), glm::clamp(lastRespawnTime * 2.0f, 0.0f, 1.0f));
+    glBindVertexArray(VAO_id);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glFlush();
+    // static Cube cube;
+    // cube.draw();
+}
+
+
+void Player::draw_slime(unsigned int shaderID)
+{
+    //if (!isAlive)
+    //    return;
+
+    glUniform3f(glGetUniformLocation(shaderID, "slime_pos"), max_pos.x, max_pos.y, max_pos.z);
+    glUniform3fv(glGetUniformLocation(shaderID, "objectColor"), 1, &color[0]);
+    //glUniform1f(glGetUniformLocation(shaderID, "kill"), 1.0f - float(!isAlive) * glm::clamp((RESPAWN_COOLDOWN - respawnTimer) / RESPAWN_COOLDOWN, 0.0f, 1.0f));
+    //glUniform1f(glGetUniformLocation(shaderID, "spawn"), glm::clamp(lastRespawnTime * 2.0f, 0.0f, 1.0f));
     glBindVertexArray(VAO_id);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     glFlush();

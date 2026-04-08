@@ -95,7 +95,7 @@ void main() {
     vec3 ro = pos.xyz - 5.0*rd;//ray origin before geometry
 
     vec3 p = ro;
-    vec3 center = model[3].xyz;
+    vec3 center = model[3].xyz - vec3(0.0,0.35,0.0);
 
     float d;
     float td = 0.0;

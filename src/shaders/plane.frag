@@ -62,7 +62,7 @@ void main() {
 
     float ambiant = 0.2;
     float diffuse = texture(roughnessMap, uv).r;
-    float specular = 0.4;
+    float specular = 0.3;
     float specular_alpha = 5.0;
     vec3 shaded = ambiant*color;
 

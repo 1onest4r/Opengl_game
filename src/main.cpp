@@ -244,6 +244,7 @@ int main()
     GLuint aoMap = LoadTexture((std::string(ROOT_FOLDER) + "/img/ao.png").c_str(), false);
     GLuint guideTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/player_guide.png").c_str(), false);
     GLuint noiseTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/noise.png").c_str(), false);
+    GLuint slimeNTexture = LoadTexture((std::string(ROOT_FOLDER) + "/img/slime_normal.png").c_str(), false);
 
     int guideWidth, guideHeight;
     glBindTexture(GL_TEXTURE_2D, guideTexture);
@@ -261,7 +262,8 @@ int main()
     glBindTexture(GL_TEXTURE_2D, aoMap);
     glActiveTexture(GL_TEXTURE8);
     glBindTexture(GL_TEXTURE_2D, noiseTexture);
-
+    glActiveTexture(GL_TEXTURE7);
+    glBindTexture(GL_TEXTURE_2D, slimeNTexture);
    
     //Sets opengl flags for rendering
     glPatchParameteri(GL_PATCH_VERTICES, 1);
@@ -281,7 +283,7 @@ int main()
     Shader shadow_shader("shadow", shaderDir + "shadow.vert", shaderDir + "shadow.frag");
 	Shader wall_shader("wall", shaderDir + "wall.vert", shaderDir + "wall.frag");
     Shader tiles_shader("tiles_background", shaderDir + "tiles.vert", shaderDir + "tiles.frag", shaderDir + "tiles.geom", "", shaderDir + "tiles.tese");
-
+    Shader slime_shader("slime", shaderDir + "slime.vert", shaderDir + "slime.frag");
     Background background(shaderDir);
 
     float deltaTime = 0.0f;
@@ -677,6 +679,17 @@ int main()
 
             glDisable(GL_DEPTH_TEST);
             glEnable(GL_BLEND);
+            slime_shader.use();
+            glUniformMatrix4fv(glGetUniformLocation(slime_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(slime_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
+            glUniform1f(glGetUniformLocation(slime_shader.id(), "time"), currentFrame);
+            // Draw players
+            for (auto& p : players)
+            {
+                p.draw_slime(slime_shader.id());
+            }
+
+
             shadow_shader.use();
             glUniformMatrix4fv(glGetUniformLocation(shadow_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(shadow_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
