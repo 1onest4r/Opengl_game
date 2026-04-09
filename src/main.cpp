@@ -11,6 +11,16 @@
 #include <algorithm>
 #include <random>
 
+#ifdef WIN32
+extern "C" {
+    _declspec(dllexport) int NvOptimusEnablement = 1;
+    _declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
+
+
+
 #define RACE_LENGTH 50.0f
 
 std::string keyToString(int key)
@@ -206,7 +216,13 @@ int main()
 
     glfwWindowHint(GLFW_SAMPLES, 8);
 
+
+    
+    int monitors_count;
+    GLFWmonitor** monitors = glfwGetMonitors(&monitors_count);
+    std::cout << "Connected monitors: " << monitors_count << std::endl;
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+    //GLFWmonitor* monitor = monitors[1]; //Force on second screen
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
@@ -217,7 +233,10 @@ int main()
         std::cout << "Window creation failed" << std::endl;
         return -1;
     }
-    glfwSetWindowPos(window, 0, 0);
+
+    int pos_x, pos_y;
+    glfwGetMonitorPos(monitor, &pos_x, &pos_y);
+    glfwSetWindowPos(window, pos_x, pos_y);
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -226,6 +245,14 @@ int main()
         glfwTerminate();
         return -1;
     }
+
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    if (vendor)
+    {
+        std::cout << "GPU Vendor: " << reinterpret_cast<const char*>(vendor) << std::endl;
+    }
+
+
 
     ImGui::CreateContext();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -267,7 +294,7 @@ int main()
    
     //Sets opengl flags for rendering
     glPatchParameteri(GL_PATCH_VERTICES, 1);
-    float tess_level = 20.f;
+    float tess_level = 60.f;
     float outer[4] = { tess_level,tess_level,tess_level,tess_level };
     float inner[2] = { tess_level ,tess_level };
 

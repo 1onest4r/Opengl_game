@@ -23,7 +23,7 @@ void main()
     vec2 pos_bl =  pos[0].xy-s*0.5;
 
     const mat4 m = proj * view;
-    float H = 6.5-32.0*texture(noiseTex, pos_bl*0.007 + vec2(time*0.01,time*0.003)).x; // To be consistent with player.geom
+    float H = 5.5-32.0*texture(noiseTex, pos_bl*0.007 + vec2(time*0.01,time*0.003)).x; // To be consistent with player.geom
     float bottom = H-2.0;
 
     col_block = mix(0.1,0.9,1.5*(texture(noiseTex, pos_bl*0.30412 ).x-0.5)+0.5);

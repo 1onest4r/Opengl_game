@@ -56,5 +56,6 @@ void main() {
     alpha *= max(0.0,1.0*(border.y - 0.15*(cos(border.x*0.6 + objectColor.z*567.21)+1.0) - 0.2*(cos(border.x*0.6*0.6132+ objectColor.y*367.21)+1.0) ));
     alpha *= smoothstep(0.0,2.0,border.x)*smoothstep(0.0,2.0,limit-border.x);
     alpha *= max(0.0,1.0*(SPACING - border.y - 0.15*(cos(border.x*0.6 + objectColor.z*337.21)+1.0) - 0.2*(cos(border.x*0.6*0.6132+ objectColor.y*421.81)+1.0) ));
+
     screenColor = vec4(shaded,clamp(alpha,0.0,0.8));
 }

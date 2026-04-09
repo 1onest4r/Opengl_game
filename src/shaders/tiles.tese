@@ -7,7 +7,7 @@ out vec3 pos;
 
 #define TILE_DIM 4
 
-#define TILE_SIZE 100.0/TILE_DIM
+#define TILE_SIZE 120.0/TILE_DIM
 
 
 void main() 
