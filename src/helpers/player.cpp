@@ -44,6 +44,8 @@ void Player::handleInput(GLFWwindow *window, float deltaTime)
 
 void Player::update(float deltaTime)
 {
+    if (is_finished)
+		isMoving = false;
     if (glm::dot(position - startPosition, forwardDir) > glm::dot(max_pos - startPosition, forwardDir))
         max_pos = position;
 

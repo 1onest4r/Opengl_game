@@ -515,7 +515,12 @@ int main()
                     else {
                         isFinished = std::find(tourney.raceFinishers.begin(), tourney.raceFinishers.end(), i) != tourney.raceFinishers.end();
                     }
-                    if (isFinished) continue;
+                    if (isFinished)
+                    {
+                        players[i].isMoving = false;
+                        //players[i].visualStretch = 0.0f;
+                        continue;
+                    }
 
                     if (players[i].moveKey != -1)
                         players[i].handleInput(window, FIXED_DELTA);
@@ -572,7 +577,8 @@ int main()
                     else {
                         isFinished = std::find(tourney.raceFinishers.begin(), tourney.raceFinishers.end(), i) != tourney.raceFinishers.end();
                     }
-                    if (isFinished) continue;
+                    players[i].is_finished = isFinished;
+                    //if (isFinished) continue;
 
                     players[i].update(FIXED_DELTA);
                 }
