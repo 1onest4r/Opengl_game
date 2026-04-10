@@ -106,7 +106,7 @@ GLuint LoadTexture(const char* path, bool gammaCorrection = false)
     return textureID;
 }
 
-Player* getLeader(std::vector<Player>& players, const std::vector<int>& raceFinishers = {})
+Player* getLeader(std::vector<Player>& players, const int pid, const std::vector<int>& raceFinishers = {})
 {
     Player* leader = nullptr;
 
@@ -120,7 +120,7 @@ Player* getLeader(std::vector<Player>& players, const std::vector<int>& raceFini
         if (std::find(raceFinishers.begin(), raceFinishers.end(), i) != raceFinishers.end() || p.position.x >= RACE_LENGTH - 3.0f)
             continue;
 
-        if (!leader || p.position.x > leader->position.x)
+        if ((!leader || p.position.x > leader->position.x) && i != pid)
             leader = &p;
     }
 
@@ -502,11 +502,12 @@ int main()
         {
             if (gameState == GameState::PLAYING)
             {
-                Player* currentLeader = getLeader(players, tourney.raceFinishers);
+                
 
                 // Movement & AI logic
                 for (int i = 0; i < players.size(); i++)
                 {
+                    Player* currentLeader = getLeader(players, i, tourney.raceFinishers);
                     // Freeze anyone who crossed the line
                     bool isFinished = false;
                     if (tourney.active) {
@@ -556,7 +557,7 @@ int main()
 
                     if (wantsToAttack)
                     {
-                        Player* leader = getLeader(players, tourney.raceFinishers);
+                        Player* leader = getLeader(players, i, tourney.raceFinishers);
                         if (leader)
                         {
                             leader->isAlive = false;
@@ -623,11 +624,12 @@ int main()
 
         if (gameState == GameState::PLAYING)
         {
-            Player* currentLeader = getLeader(players, tourney.raceFinishers);
+            
 
             // --- MOVEMENT & INPUT LOGIC ---
             for (int i = 0; i < players.size(); i++)
             {
+                Player* currentLeader = getLeader(players, i, tourney.raceFinishers);
                 bool isFinished = false;
                 if (tourney.active) {
                     isFinished = (i < selectedPlayerCount && std::find(tourney.raceFinishers.begin(), tourney.raceFinishers.end(), i) != tourney.raceFinishers.end()) || (players[i].position.x >= finishLine);
@@ -681,7 +683,7 @@ int main()
 
                 if (wantsToAttack)
                 {
-                    Player* leader = getLeader(players, tourney.raceFinishers);
+                    Player* leader = getLeader(players, i, tourney.raceFinishers);
                     if (leader && leader != &attacker)
                     {
                         leader->isAlive = false;
