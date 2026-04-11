@@ -20,7 +20,7 @@ void main() {
     vec3 color = vec3(1.0);
 
     // Set how wide the checkerboard area is
-    float checkerWidth = 3.0; 
+    float checkerWidth = 4.0; 
     
     // The visual start and end of the finish line area
     float startLine = finishLine - checkerWidth;

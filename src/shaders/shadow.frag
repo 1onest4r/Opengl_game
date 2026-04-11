@@ -16,9 +16,9 @@ void main() {
     if (pos.x<-0.5 || pos.z<1.5)
         discard;
 
-    float d = 0.4*length((pos.xyz-pos_player)*vec3(1.0-0.2*uStretch,1.0,1.0));
+    float d = 0.55*length((pos.xyz-pos_player)*vec3(1.0-0.2*uStretch,1.0,1.0));
 
-    d = clamp(d,0.0,1.0);
+    d = clamp(d,0.5,1.0);
     d = d*d;
     float k = clamp(6.0*(kill-1.0)+1.0,0.0,1.0);
     //if you wish to use the player random color use playerColor

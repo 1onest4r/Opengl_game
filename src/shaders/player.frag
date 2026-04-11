@@ -12,6 +12,7 @@ uniform mat4 proj;
 uniform float uStretch;
 uniform float kill;
 uniform float spawn;
+uniform float finishLine;
 in vec4 pos;//world
 in vec3 light_pos;
 
@@ -63,7 +64,8 @@ float bump_3d(vec3 p)
     // put scale to 0.0 to disable bump effect
     float scale = 0.008;
     float freq = 16.0;
-    return cos(p.y*freq)*cos(p.x*freq)*scale;
+
+    return cos(p.y*freq*1.5 - 5.0*time)*cos(p.x*freq - 3.0*time)*scale;
 }
 
 
@@ -139,6 +141,8 @@ void main() {
 
 
     float fade_alpha = clamp(kill*1.33,0.0,1.0);
+    if (model[3].x>finishLine)
+        fade_alpha *=0.66;
 
     //if you wish to use the player random color use playerColor
     //objectColor for separate coloring before drawing the shapes

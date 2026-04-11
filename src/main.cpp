@@ -190,7 +190,7 @@ glm::vec3 GetRandomColor(std::vector<glm::vec3>& color_list)
 
 int main()
 {
-    float finishLine = RACE_LENGTH - 3.0f;
+    float finishLine = RACE_LENGTH - 2.0f;
 
     // to not exceed players from predefined keys
     int selectedPlayerCount = 4;
@@ -729,6 +729,7 @@ int main()
             glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "view"), 1, GL_FALSE, glm::value_ptr(view));
             glUniformMatrix4fv(glGetUniformLocation(player_rendering_shader.id(), "proj"), 1, GL_FALSE, glm::value_ptr(proj));
             glUniform1f(glGetUniformLocation(player_rendering_shader.id(), "time"), currentFrame);
+            glUniform1f(glGetUniformLocation(player_rendering_shader.id(), "finishLine"), finishLine);
             // Draw players
             for (auto& p : players)
             {

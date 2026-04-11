@@ -12,7 +12,7 @@ out vec3 pos;
 
 void main() 
 {
-    pos.xy = TILE_SIZE*(ijCoords[0]+gl_TessCoord.xy) - vec2(30.0,45.0);
+    pos.xy = TILE_SIZE*(ijCoords[0]+gl_TessCoord.xy) - vec2(45.0,45.0);
     pos.z = TILE_SIZE/gl_TessLevelInner[0];
     
 }

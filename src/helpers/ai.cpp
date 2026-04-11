@@ -88,8 +88,9 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
     myPlayer.isMoving = true;
     else
     {
+
         cycle = 0;
-        t_wait = t + 1.0f;
+        t_wait = t + 0.3f + 1.5*float(rand()) / (RAND_MAX + 1);
     }
     
     myPlayer.position += float(myPlayer.isMoving)*myPlayer.forwardDir * myPlayer.speed * deltaTime;
