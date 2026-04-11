@@ -2,13 +2,6 @@
 #include "player.h"
 #include "config.h"
 
-enum class AIPersonality
-{
-    STEADY,
-    SPRINTER,
-    CHAOTIC,
-    AGGRESSIVE
-};
 
 class AIController
 {
@@ -21,18 +14,11 @@ public:
     void consumeAttack() { _wantsToAttack = false; }
 
 private:
-    AIPersonality personality;
-
-    float tapTimer;
-    float currentTapInterval;
-    float stateTimer;
-    bool isSprinting;
-    float chaoticSpeed = 1.0f;
-    bool isPausing;
-    float pauseTimer;
-    float pauseDuration;
+    float t_wait = 0.0;
+    float t_move = 0.0;
+    float t;
+    int cycle = 0;
 
     bool _wantsToAttack;
 
-    void generateNewTapInterval();
 };

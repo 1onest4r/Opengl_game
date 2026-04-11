@@ -2,6 +2,8 @@
 #include "config.h"
 #include "cube.h"
 
+
+#define RACE_LENGTH 50.0f
 #define KILL_ANIM_TIME 0.3f
 #define RESPAWN_COOLDOWN 3.0f
 class Player

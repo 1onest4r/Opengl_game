@@ -2,86 +2,95 @@
 
 AIController::AIController()
 {
-    int p = rand() % 4;
-    personality = static_cast<AIPersonality>(p);
-
-    stateTimer = 0.0f;
-    isSprinting = false;
-    isPausing = false;
-    pauseTimer = 2.0f; // Start with a 2 second buffer before first pause check
-    pauseDuration = 0.0f;
+    t = 0.0f;
+    cycle = 0;
     _wantsToAttack = false;
+    if (float(rand()) / (RAND_MAX + 1)>0.05f)
+        t_wait = 0.5f+float(rand()) / (RAND_MAX + 1)*4.0f;
+    else
+        t_wait = 5.0f + glm::sqrt(float(rand()) / (RAND_MAX + 1)) * 8.0f;
 }
 
 void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
 {
+	float race_time = RACE_LENGTH / myPlayer.speed;
     if (!myPlayer.isAlive)
     {
         myPlayer.isMoving = false;
         return;
     }
 
-    stateTimer += deltaTime;
-
-    // --- PAUSING LOGIC ---
-    if (!isPausing)
+    t += deltaTime;
+    if (t < t_wait)
     {
-        pauseTimer -= deltaTime;
-        if (pauseTimer <= 0.0f)
-        {
-            pauseTimer = 1.0f + (rand() % 400) / 100.0f;
-            if ((rand() % 10) < 3)
-            { // 30% chance to pause
-                isPausing = true;
-                pauseDuration = 0.4f + (rand() % 60) / 100.0f;
-            }
-        }
-    }
-
-    if (isPausing)
-    {
-        pauseDuration -= deltaTime;
-        if (pauseDuration <= 0.0f)
-            isPausing = false;
-
-        // AI releases the button -> Slug curls up
         myPlayer.isMoving = false;
         return;
-    }
-
-    // --- MOVEMENT LOGIC ---
-    // AI "presses" the button -> Slug stretches
-    myPlayer.isMoving = true;
-
-    float speedMultiplier = 0.8f;
-    switch (personality)
+	}
+    else if (cycle == 0)
     {
-    case AIPersonality::STEADY:
-        speedMultiplier *= 0.9f;
-        break;
-    case AIPersonality::SPRINTER:
-        if (stateTimer > 1.5f)
+
+        cycle = 1;
+
+
+        float delta_d = leader->position.x - myPlayer.position.x;
+        float delta_t_catch = glm::max(0.0f,delta_d / myPlayer.speed);
+
+
+        if (myPlayer.position.x > RACE_LENGTH * 0.82f)
         {
-            isSprinting = !isSprinting;
-            stateTimer = 0.0f;
+            t_move = t + 1000.0f;//sprint to finish
+            return;
         }
-        speedMultiplier *= isSprinting ? 1.6f : 0.2f;
-        // If sprinter is in the "slow" phase, let them curl up
-        if (!isSprinting)
-            myPlayer.isMoving = false;
-        break;
-    case AIPersonality::CHAOTIC:
-        if (stateTimer > 0.5f)
+
+        float b = float(rand()) / (RAND_MAX + 1);
+        if (b < 0.02f) // fat rush
+            t_move = t + race_time * (0.3f + 0.1f * float(rand()) / (RAND_MAX + 1));
+        else if (b < 0.04f)//fat stall
         {
-            chaoticSpeed = 0.5f + (rand() % 60) / 100.0f;
-            stateTimer = 0.0f;
+            t_wait = t + race_time * (0.2f + 0.1f * float(rand()) / (RAND_MAX + 1));
+            cycle = 0;
+            return;
         }
-        speedMultiplier *= chaoticSpeed;
-        break;
-    case AIPersonality::AGGRESSIVE:
-        speedMultiplier *= 1.1f;
-        break;
+        else if (b < 0.8f) // chicken
+        {
+            if (delta_t_catch <= 0.0f)//first position
+            {
+                t_wait = t + 1.0f+2.5f*float(rand()) / (RAND_MAX + 1);
+                myPlayer.isMoving = false;
+                cycle = 0;
+                return;
+            }
+
+            float dt = 0.9f * float(rand()) / (RAND_MAX + 1) * delta_t_catch;
+            if (dt < 0.3f)//minstep of 230ms
+                dt = 0.0f;
+			t_move = t + dt;
+        }
+        else //take lead
+        {
+            float dt;
+            if (delta_t_catch <= 0.0f)//first position
+            {
+                dt = 0.5f + 3.0f * float(rand()) / (RAND_MAX + 1);
+            }
+            else
+            {
+                dt = (1.0f + 2.0f * float(rand()) / (RAND_MAX + 1)) * delta_t_catch;
+                if (dt < 0.23f)//minstep of 230ms
+                    dt = 0.0f;
+            }
+            t_move = t + dt;
+        }
     }
 
-    myPlayer.position += myPlayer.forwardDir * myPlayer.speed * speedMultiplier * deltaTime;
+
+    if (t<t_move)
+    myPlayer.isMoving = true;
+    else
+    {
+        cycle = 0;
+        t_wait = t + 1.0f;
+    }
+    
+    myPlayer.position += float(myPlayer.isMoving)*myPlayer.forwardDir * myPlayer.speed * deltaTime;
 }

@@ -21,7 +21,7 @@ extern "C" {
 
 
 
-#define RACE_LENGTH 50.0f
+
 
 std::string keyToString(int key)
 {
@@ -106,7 +106,7 @@ GLuint LoadTexture(const char* path, bool gammaCorrection = false)
     return textureID;
 }
 
-Player* getLeader(std::vector<Player>& players, const int pid, const std::vector<int>& raceFinishers = {})
+Player* getLeader(std::vector<Player>& players, const int pid, const std::vector<int>& raceFinishers = {},float global=false)
 {
     Player* leader = nullptr;
 
@@ -120,7 +120,7 @@ Player* getLeader(std::vector<Player>& players, const int pid, const std::vector
         if (std::find(raceFinishers.begin(), raceFinishers.end(), i) != raceFinishers.end() || p.position.x >= RACE_LENGTH - 3.0f)
             continue;
 
-        if ((!leader || p.position.x > leader->position.x) && i != pid)
+        if ((!leader || p.position.x > leader->position.x) && (global || i != pid))
             leader = &p;
     }
 
@@ -165,8 +165,8 @@ struct Participant {
     int originalIndex;
     int moveKey;
     int attackKey;
-    glm::vec3 color;
     std::string name;
+    glm::vec3 color;
     int score = 0;
 };
 
@@ -175,9 +175,18 @@ struct TournamentData {
     int currentRound = 1;
     int totalRounds = 3;
     int scoringPlaces = 3;
+    
     std::vector<Participant> participants;
     std::vector<int> raceFinishers;
 };
+
+glm::vec3 GetRandomColor(std::vector<glm::vec3>& color_list)
+{
+    uint32_t n = (uint32_t)color_list.size();
+
+	return color_list[uint32_t(float(rand())/(RAND_MAX+1) * n)];
+}
+
 
 int main()
 {
@@ -294,7 +303,7 @@ int main()
    
     //Sets opengl flags for rendering
     glPatchParameteri(GL_PATCH_VERTICES, 1);
-    float tess_level = 60.f;
+    float tess_level = 30.f;
     float outer[4] = { tess_level,tess_level,tess_level,tess_level };
     float inner[2] = { tess_level ,tess_level };
 
@@ -321,7 +330,7 @@ int main()
     glViewport(0, 0, w_width, w_height);
 
     float aspect = (float)w_width / (float)w_height;
-    float zoom = 20.0f;
+    float zoom = 21.0f;
     glm::mat4 proj = glm::ortho(-zoom * aspect, zoom * aspect, -zoom, zoom, 1.0f, 1000.0f);
 
     Camera camera(glm::vec3(-30.0f, 30.0f, 15.0f));
@@ -336,28 +345,6 @@ int main()
         int aiCount = 2 + rand() % 5;
         int totalCount = selectedPlayerCount + aiCount;
 
-        std::vector<glm::vec3> aiColorsPool;
-
-        // Find safe leftover colors for AIs if in Tournament Mode
-        if (tourney.active) {
-            for (const auto& c : ALL_COLORS) {
-                bool isUsedByPlayer = false;
-                for (const auto& pt : tourney.participants) {
-                    if (abs(pt.color.x - c.x) < 0.01f && abs(pt.color.y - c.y) < 0.01f && abs(pt.color.z - c.z) < 0.01f) {
-                        isUsedByPlayer = true;
-                        break;
-                    }
-                }
-                if (!isUsedByPlayer) {
-                    aiColorsPool.push_back(c);
-                }
-            }
-        }
-        else {
-            aiColorsPool = ALL_COLORS;
-        }
-
-        std::shuffle(aiColorsPool.begin(), aiColorsPool.end(), std::default_random_engine(rand()));
 
         float spacingDist = 3.0f;
         float planeWidth = totalCount * spacingDist;
@@ -385,13 +372,14 @@ int main()
                 if (tourney.active) {
                     auto& pt = tourney.participants[i];
                     players.emplace_back(spawnPos, pt.moveKey, pt.attackKey, 2.0f);
-                    players.back().color = pt.color;
+                    players.back().color = GetRandomColor(ALL_COLORS);
+					pt.color = players.back().color; // Sync participant color with player instance
                 }
                 else {
                     Keypair keys = predefinedPlayerKeys[i];
                     players.emplace_back(spawnPos, keys.moveKey, keys.attackKey, 2.0f);
                     // Safe modulo mapping just in case
-                    players.back().color = aiColorsPool[i % aiColorsPool.size()];
+                    players.back().color = GetRandomColor(ALL_COLORS);
                 }
             }
             // The rest are random AIs dynamically injected
@@ -399,10 +387,10 @@ int main()
                 players.emplace_back(spawnPos, -1, -1, 2.0f);
                 if (tourney.active) {
                     // Offset index and use Modulo to be 100% mathematically safe from Vector out of range crashes
-                    players.back().color = aiColorsPool[(i - selectedPlayerCount) % aiColorsPool.size()];
+                    players.back().color = GetRandomColor(ALL_COLORS);
                 }
                 else {
-                    players.back().color = aiColorsPool[i % aiColorsPool.size()];
+                    players.back().color = GetRandomColor(ALL_COLORS);
                 }
                 aiBrains[i] = AIController();
             }
@@ -833,14 +821,10 @@ int main()
                     tourney.scoringPlaces = std::max(1, selectedPlayerCount / 2);
                     tourney.participants.clear();
 
-                    // Generate locked colors ONLY for Real players at the start
-                    std::vector<glm::vec3> playerColors = ALL_COLORS;
-                    std::shuffle(playerColors.begin(), playerColors.end(), std::default_random_engine(rand()));
 
                     for (int i = 0; i < selectedPlayerCount; i++) {
                         Participant pt;
                         pt.originalIndex = i;
-                        pt.color = playerColors[i]; // Store perm colors for participants
                         pt.moveKey = predefinedPlayerKeys[i].moveKey;
                         pt.attackKey = predefinedPlayerKeys[i].attackKey;
                         pt.name = "PLAYER (" + keyToString(pt.moveKey) + " and " + keyToString(pt.attackKey) + ")";
