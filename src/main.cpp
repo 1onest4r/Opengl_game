@@ -184,7 +184,7 @@ glm::vec3 GetRandomColor(std::vector<glm::vec3>& color_list)
 {
     uint32_t n = (uint32_t)color_list.size();
 
-	return color_list[uint32_t(float(rand())/(RAND_MAX+1) * n)];
+	return color_list[uint32_t(rand()% n)];
 }
 
 

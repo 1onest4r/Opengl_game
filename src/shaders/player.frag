@@ -63,7 +63,7 @@ float bump_3d(vec3 p)
 {
     // put scale to 0.0 to disable bump effect
     float scale = 0.008;
-    float freq = 16.0;
+    float freq = 10.0;
 
     return cos(p.y*freq*1.5 - 5.0*time)*cos(p.x*freq - 3.0*time)*scale;
 }

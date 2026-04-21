@@ -9,6 +9,9 @@ AIController::AIController()
         t_wait = 0.5f+float(rand()) / (RAND_MAX + 1)*4.0f;
     else
         t_wait = 5.0f + glm::sqrt(float(rand()) / (RAND_MAX + 1)) * 8.0f;
+
+
+    t_move = -1.0f;
 }
 
 void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
@@ -23,6 +26,13 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
     t += deltaTime;
     if (t < t_wait)
     {
+        if (myPlayer.position.x > RACE_LENGTH * 0.90f)
+        {
+            t_wait = 0.0f;
+            t_move = t + 1000.0f;//sprint to finish
+            cycle = 1;
+            return;
+        }
         myPlayer.isMoving = false;
         return;
 	}
@@ -51,7 +61,7 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
             cycle = 0;
             return;
         }
-        else if (b < 0.8f) // chicken
+        else if (b < 0.8f && t_move!=-1.0f) // chicken
         {
             if (delta_t_catch <= 0.0f)//first position
             {
@@ -75,9 +85,8 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
             }
             else
             {
-                dt = (1.0f + 2.0f * float(rand()) / (RAND_MAX + 1)) * delta_t_catch;
-                if (dt < 0.23f)//minstep of 230ms
-                    dt = 0.0f;
+                dt = 0.5f+(1.0f + 2.0f * float(rand()) / (RAND_MAX + 1)) * delta_t_catch;
+
             }
             t_move = t + dt;
         }
@@ -90,7 +99,7 @@ void AIController::update(float deltaTime, Player &myPlayer, Player *leader)
     {
 
         cycle = 0;
-        t_wait = t + 0.3f + 1.5*float(rand()) / (RAND_MAX + 1);
+        t_wait = t + 0.3f + 1.5f*float(rand()) / (RAND_MAX + 1);
     }
     
     myPlayer.position += float(myPlayer.isMoving)*myPlayer.forwardDir * myPlayer.speed * deltaTime;
